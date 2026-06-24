@@ -129,9 +129,16 @@ try {
     const seat = world.seat;
     const main = document.getElementById('main');
     const rect = main.getBoundingClientRect();
+    const three = window.three;
+    const raycaster = new three.Raycaster();
+    const tablePlane = new three.Plane(new three.Vector3(0, 0, 1), 0);
 
     function project(place) {
       const point = place.position.clone();
+      return projectPoint(point);
+    }
+
+    function projectPoint(point) {
       game.mainGroup.updateMatrixWorld(true);
       game.mainGroup.localToWorld(point);
       point.project(game.mainView.camera);
@@ -141,7 +148,21 @@ try {
       };
     }
 
-    const handSelect = world.toSelect().find(item => {
+    function screenToTable(point) {
+      const mouse = new three.Vector2(
+        (point.x - rect.left) / rect.width * 2 - 1,
+        -((point.y - rect.top) / rect.height * 2 - 1)
+      );
+      raycaster.setFromCamera(mouse, game.mainView.camera);
+      const worldPoint = new three.Vector3();
+      if (!raycaster.ray.intersectPlane(tablePlane, worldPoint)) {
+        return null;
+      }
+      game.mainGroup.worldToLocal(worldPoint);
+      return worldPoint;
+    }
+
+    const handSelects = world.toSelect().filter(item => {
       const thing = world.things.get(item.id);
       return item.cameraHand === true &&
         thing &&
@@ -149,13 +170,49 @@ try {
         thing.slot.seat === seat;
     });
 
-    const discardSlot = [...world.slots.values()].find(slot =>
+    const discardSlots = [...world.slots.values()].filter(slot =>
       slot.type === 'TILE' &&
       slot.group === 'discard' &&
       slot.seat === seat &&
       slot.thing === null &&
       (!slot.links.requires || slot.links.requires.thing !== null)
     );
+
+    let target = null;
+    for (const handSelect of handSelects) {
+      const handThing = world.things.get(handSelect.id);
+      const handPoint = project(handSelect);
+      const handDrop = screenToTable(handPoint);
+      if (handDrop === null) {
+        continue;
+      }
+
+      for (const discardSlot of discardSlots) {
+        const discardPlace = discardSlot.placeWithOffset(0);
+        const desiredDrop = handDrop.clone().add(
+          discardPlace.position.clone().sub(handThing.place().position)
+        );
+        const dragPoint = projectPoint(desiredDrop);
+        if (
+          dragPoint.x >= rect.left + 8 &&
+          dragPoint.x <= rect.left + rect.width - 8 &&
+          dragPoint.y >= rect.top + 8 &&
+          dragPoint.y <= rect.top + rect.height - 8
+        ) {
+          target = {
+            hand: handPoint,
+            drag: dragPoint,
+            handSlotName: handThing.slot.name,
+            discardSlotName: discardSlot.name,
+          };
+          break;
+        }
+      }
+
+      if (target !== null) {
+        break;
+      }
+    }
 
     const beforeDiscardThingIndexes = [...world.things.values()].filter(thing =>
       thing.type === 'TILE' &&
@@ -164,21 +221,19 @@ try {
     ).map(thing => thing.index);
 
     return {
-      hand: handSelect ? project(handSelect) : null,
-      discard: discardSlot ? project(discardSlot.placeWithOffset(0)) : null,
-      discardSlotName: discardSlot?.name ?? null,
+      ...target,
       beforeDiscardThingIndexes,
     };
   });
 
   assert(dragTargets.hand !== null, 'No selectable camera-hand tile found.');
-  assert(dragTargets.discard !== null, 'No empty discard slot found.');
+  assert(dragTargets.drag !== null, 'No reachable discard drag target found.');
 
   await page.mouse.move(dragTargets.hand.x, dragTargets.hand.y);
   await page.waitForTimeout(80);
   await page.mouse.down();
   await page.waitForTimeout(80);
-  await page.mouse.move(dragTargets.discard.x, dragTargets.discard.y, { steps: 30 });
+  await page.mouse.move(dragTargets.drag.x, dragTargets.drag.y, { steps: 30 });
   await page.waitForTimeout(120);
   await page.mouse.up();
   await page.waitForTimeout(180);

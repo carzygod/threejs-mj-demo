@@ -1,4 +1,4 @@
-import { Group, Mesh, Vector3, MeshBasicMaterial, MeshLambertMaterial, Object3D, PlaneGeometry, BoxGeometry, InstancedMesh, BufferGeometry } from "three";
+import { Group, Mesh, Vector3, MeshBasicMaterial, MeshLambertMaterial, Object3D, PlaneGeometry, BoxGeometry, CylinderGeometry, InstancedMesh, BufferGeometry } from "three";
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import { World } from "./world";
@@ -24,6 +24,7 @@ const SHOW_SCORE_TRAYS = false;
 const TABLE_RAIL_HEIGHT = 1.8;
 const TABLE_RAIL_THICKNESS = 5.5;
 const TABLE_GOLD_TRIM = 0.8;
+const TABLE_CORNER_ORNAMENT_HEIGHT = 0.32;
 const DISCARD_MARKER_DURATION_MS = 900;
 const HELD_GLOW_OPACITY = 0.48;
 
@@ -350,10 +351,30 @@ export class ObjectView {
       y: number,
       z: number,
       material: MeshLambertMaterial,
+      rotationZ: number = 0,
     ): Mesh => {
       const mesh = new Mesh(new BoxGeometry(width, depth, height), material);
       mesh.name = name;
       mesh.position.set(x, y, z);
+      mesh.rotation.z = rotationZ;
+      this.mainGroup.add(mesh);
+      mesh.updateMatrixWorld();
+      return mesh;
+    };
+
+    const addRoundStud = (
+      name: string,
+      radius: number,
+      height: number,
+      x: number,
+      y: number,
+      z: number,
+      material: MeshLambertMaterial,
+    ): Mesh => {
+      const mesh = new Mesh(new CylinderGeometry(radius, radius, height, 32), material);
+      mesh.name = name;
+      mesh.position.set(x, y, z);
+      mesh.rotation.x = Math.PI / 2;
       this.mainGroup.add(mesh);
       mesh.updateMatrixWorld();
       return mesh;
@@ -399,6 +420,64 @@ export class ObjectView {
       innerMin + 3.7, center, trimZ + 0.06, darkGrooveMaterial);
     addBox('table-inner-groove-right', 0.36, trimLength, 0.18,
       innerMax - 3.7, center, trimZ + 0.06, darkGrooveMaterial);
+
+    this.addCornerOrnaments(addBox, addRoundStud, innerMin, innerMax, trimZ, goldMaterial, railHighlightMaterial);
+  }
+
+  private addCornerOrnaments(
+    addBox: (
+      name: string,
+      width: number,
+      depth: number,
+      height: number,
+      x: number,
+      y: number,
+      z: number,
+      material: MeshLambertMaterial,
+      rotationZ?: number,
+    ) => Mesh,
+    addRoundStud: (
+      name: string,
+      radius: number,
+      height: number,
+      x: number,
+      y: number,
+      z: number,
+      material: MeshLambertMaterial,
+    ) => Mesh,
+    innerMin: number,
+    innerMax: number,
+    trimZ: number,
+    goldMaterial: MeshLambertMaterial,
+    railHighlightMaterial: MeshLambertMaterial,
+  ): void {
+    const ornamentZ = trimZ + 0.34;
+    const studZ = ornamentZ + TABLE_CORNER_ORNAMENT_HEIGHT * 0.5;
+    const corners = [
+      { sx: -1, sy: -1, name: 'front-left' },
+      { sx: 1, sy: -1, name: 'front-right' },
+      { sx: 1, sy: 1, name: 'back-right' },
+      { sx: -1, sy: 1, name: 'back-left' },
+    ];
+
+    for (const corner of corners) {
+      const x = corner.sx < 0 ? innerMin + 6.2 : innerMax - 6.2;
+      const y = corner.sy < 0 ? innerMin + 6.2 : innerMax - 6.2;
+      const xArm = x + corner.sx * 3.5;
+      const yArm = y + corner.sy * 3.5;
+      const diagonal = corner.sx === corner.sy ? Math.PI / 4 : -Math.PI / 4;
+
+      addBox(`table-corner-${corner.name}-gold-arm-x`, 11.5, 0.72, TABLE_CORNER_ORNAMENT_HEIGHT,
+        x, yArm, ornamentZ, goldMaterial);
+      addBox(`table-corner-${corner.name}-gold-arm-y`, 0.72, 11.5, TABLE_CORNER_ORNAMENT_HEIGHT,
+        xArm, y, ornamentZ, goldMaterial);
+      addBox(`table-corner-${corner.name}-gold-diagonal`, 10.5, 0.72, TABLE_CORNER_ORNAMENT_HEIGHT,
+        x + corner.sx * 1.5, y + corner.sy * 1.5, ornamentZ + 0.04, goldMaterial, diagonal);
+      addBox(`table-corner-${corner.name}-wood-highlight`, 7.2, 0.46, TABLE_CORNER_ORNAMENT_HEIGHT * 0.7,
+        x - corner.sx * 2.1, y - corner.sy * 2.1, ornamentZ + 0.08, railHighlightMaterial, diagonal);
+      addRoundStud(`table-corner-${corner.name}-gold-stud`, 1.25, TABLE_CORNER_ORNAMENT_HEIGHT,
+        x + corner.sx * 5.1, y + corner.sy * 5.1, studZ, goldMaterial);
+    }
   }
 
   updateDropShadows(places: Array<Place>): void {
