@@ -6,8 +6,11 @@
   "scripts": {
     "start": "parcel index.html",
     "watch": "parcel watch index.html",
+    "clean:build": "node scripts/clean-output-dir.mjs build",
+    "clean:dist": "node scripts/clean-output-dir.mjs dist",
     "build:react02-assets": "node scripts/build-react02-asset-pack.mjs",
-    "build": "node ./node_modules/parcel/lib/bin.js build index.html --public-url /threejsDemo/ --no-cache",
+    "build": "npm run clean:build && node ./node_modules/parcel/lib/bin.js build index.html --public-url . --dist-dir build --no-cache",
+    "build:web": "npm run clean:dist && node ./node_modules/parcel/lib/bin.js build index.html --public-url /threejsDemo/ --dist-dir dist --no-cache",
     "verify:20x9": "node scripts/verify-20x9.mjs"
   },
   "devDependencies": {
