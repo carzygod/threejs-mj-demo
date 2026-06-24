@@ -37,6 +37,7 @@ const sourceAssets = [
   ["TABLE-BASE-PERSPECTIVE.png", "table-perspective-source.png"],
   ["TILE-BACK-GREEN.png", "tile-back-green-source.png"],
   ["FX-DISCARD-MARKER.png", "fx-discard-marker-source.png"],
+  ["PROP-DICE-PAIR.png", "prop-dice-pair-source.png"],
 ];
 
 for (const [from, to] of sourceAssets) {
@@ -202,6 +203,64 @@ const shadowSvg = (cx, cy) => Buffer.from(
   </svg>`
 );
 
+const dicePipPositions = {
+  1: [[48, 48]],
+  2: [[31, 31], [65, 65]],
+  3: [[29, 29], [48, 48], [67, 67]],
+  4: [[30, 30], [66, 30], [30, 66], [66, 66]],
+  5: [[29, 29], [67, 29], [48, 48], [29, 67], [67, 67]],
+  6: [[30, 27], [66, 27], [30, 48], [66, 48], [30, 69], [66, 69]],
+};
+
+const generateDiceStrip = async () => {
+  const faceSize = 96;
+  const faces = Array.from({ length: 6 }, (_, index) => {
+    const value = index + 1;
+    const pipColor = value === 1 || value === 4 ? "#b71f11" : "#18231a";
+    const pips = dicePipPositions[value]
+      .map(([x, y]) => `
+        <circle cx="${x}" cy="${y}" r="${value === 1 ? 12 : 8.8}" fill="${pipColor}"/>
+        <circle cx="${x - 2.5}" cy="${y - 3}" r="${value === 1 ? 4.6 : 3.2}" fill="#fff1d0" opacity=".34"/>
+      `)
+      .join("");
+
+    return `
+      <g transform="translate(${index * faceSize} 0)">
+        <ellipse cx="49" cy="82" rx="33" ry="8" fill="#001a13" opacity=".22"/>
+        <rect x="14" y="12" width="72" height="72" rx="16" fill="#2e210d" opacity=".22"/>
+        <rect x="10" y="8" width="72" height="72" rx="16" fill="#f9efd1"/>
+        <path d="M20 12h48c8 0 14 6 14 14v42c0 8-6 14-14 14H20c-8 0-14-6-14-14V26c0-8 6-14 14-14Z"
+          fill="#d2aa5b" opacity=".58" transform="translate(4 2)"/>
+        <rect x="10" y="8" width="72" height="72" rx="16" fill="url(#diceFace)"/>
+        <path d="M22 13h48c4.5 0 8 3.5 8 8" fill="none" stroke="#fff8dc" stroke-width="5" stroke-linecap="round" opacity=".68"/>
+        <path d="M17 69c8 7 21 10 39 8" fill="none" stroke="#a97822" stroke-width="4" stroke-linecap="round" opacity=".42"/>
+        ${pips}
+        <rect x="10" y="8" width="72" height="72" rx="16" fill="none" stroke="#f5d070" stroke-width="3" opacity=".72"/>
+        <rect x="14" y="12" width="64" height="64" rx="13" fill="none" stroke="#ffffff" stroke-width="2" opacity=".45"/>
+      </g>
+    `;
+  }).join("");
+
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${faceSize * 6}" height="${faceSize}" viewBox="0 0 ${faceSize * 6} ${faceSize}">
+  <defs>
+    <linearGradient id="diceFace" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fffbe9"/>
+      <stop offset="45%" stop-color="#f5e3b3"/>
+      <stop offset="100%" stop-color="#c59a4a"/>
+    </linearGradient>
+  </defs>
+  ${faces}
+</svg>`;
+
+  const output = join(generatedRoot, "dice-strip-react02.png");
+  await sharp(Buffer.from(svg))
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toFile(output);
+
+  console.log("generated img/react02/generated/dice-strip-react02.png");
+};
+
 const generateTileAtlas = async () => {
   const composites = [{ input: Buffer.from(tileAtlasBaseSvg), left: 0, top: 0 }];
 
@@ -234,6 +293,7 @@ const generateTileAtlas = async () => {
 
 writeText("table-felt.svg", tableFeltSvg);
 await generateTileAtlas();
+await generateDiceStrip();
 writeText("fx-discard-marker.svg", discardMarkerSvg);
 
 console.log(`React-02 asset pack generated at ${outputRoot}`);

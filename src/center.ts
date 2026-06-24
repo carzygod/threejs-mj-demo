@@ -264,8 +264,21 @@ export class Center {
     // // https://en.wikipedia.org/wiki/Linear_congruential_generator
     // b = (t * 1664525 + 1013904223) % 6 + 1;
 
-    this.drawDie(a, -44, -20, 40);
-    this.drawDie(b, 4, -20, 40);
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    const glow = ctx.createRadialGradient(0, 0, 8, 0, 0, 58);
+    glow.addColorStop(0, 'rgba(255, 231, 139, 0.52)');
+    glow.addColorStop(0.52, 'rgba(242, 177, 46, 0.22)');
+    glow.addColorStop(1, 'rgba(242, 177, 46, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 4, 62, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    this.drawDie(a, -50, -26, 48);
+    this.drawDie(b, 2, -26, 48);
   }
 
   drawDie(n: number, dx: number, dy: number, dstSize: number) {
