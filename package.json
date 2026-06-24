@@ -7,7 +7,8 @@
     "start": "parcel index.html",
     "watch": "parcel watch index.html",
     "build:react02-assets": "node scripts/build-react02-asset-pack.mjs",
-    "build": "node ./node_modules/parcel/lib/bin.js build index.html --public-url /threejsDemo/ --no-cache"
+    "build": "node ./node_modules/parcel/lib/bin.js build index.html --public-url /threejsDemo/ --no-cache",
+    "verify:20x9": "node scripts/verify-20x9.mjs"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
@@ -19,6 +20,7 @@
     "@typescript-eslint/parser": "^8.40.0",
     "eslint": "^9.34.0",
     "parcel": "^2.15.4",
+    "playwright-core": "^1.45.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
