@@ -3,10 +3,13 @@ import tableFeltSvg from 'url:../img/react02/generated/table-felt.svg';
 // @ts-ignore
 import tilesLabelsSvg from 'url:../img/react02/generated/tile-labels-react02.svg';
 // @ts-ignore
+import discardMarkerSvg from 'url:../img/react02/generated/fx-discard-marker.svg';
+// @ts-ignore
 import glbModels from 'url:../img/models.auto.glb';
 
 import { Texture, Mesh, TextureLoader, Material,
-   MeshStandardMaterial, MeshLambertMaterial, PlaneGeometry, RepeatWrapping, LinearSRGBColorSpace } from 'three';
+   MeshStandardMaterial, MeshLambertMaterial, PlaneGeometry,
+   RepeatWrapping, LinearSRGBColorSpace, DoubleSide } from 'three';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { World } from './world';
 import { Size } from './types';
@@ -39,7 +42,16 @@ export class AssetLoader {
   }
 
   makeMarker(): Mesh {
-    return this.cloneMesh(this.meshes.marker);
+    const geometry = new PlaneGeometry(Size.MARKER.x, Size.MARKER.x);
+    const material = new MeshLambertMaterial({
+      map: this.textures.discardMarker,
+      transparent: true,
+      depthWrite: false,
+      side: DoubleSide,
+    });
+    const mesh = new Mesh(geometry, material);
+    mesh.renderOrder = 3;
+    return mesh;
   }
 
   cloneMesh(mesh: Mesh): Mesh {
@@ -57,6 +69,7 @@ export class AssetLoader {
     return Promise.all([
       this.loadTexture(tableFeltSvg, 'table'),
       this.loadTexture(tilesLabelsSvg, 'tilesLabels'),
+      this.loadTexture(discardMarkerSvg, 'discardMarker'),
       this.loadModels(glbModels),
       (document as any).fonts.load('40px "Segment7Standard"'),
     ]).then(() => {

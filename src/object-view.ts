@@ -1,4 +1,4 @@
-import { Group, Mesh, Vector3, MeshBasicMaterial, MeshLambertMaterial, Object3D, PlaneGeometry, InstancedMesh, BufferGeometry } from "three";
+import { Group, Mesh, Vector3, MeshBasicMaterial, MeshLambertMaterial, Object3D, PlaneGeometry, BoxGeometry, InstancedMesh, BufferGeometry } from "three";
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 import { World } from "./world";
@@ -21,6 +21,9 @@ export interface Render {
 
 const MAX_SHADOWS = 300;
 const SHOW_SCORE_TRAYS = false;
+const TABLE_RAIL_HEIGHT = 1.8;
+const TABLE_RAIL_THICKNESS = 5.5;
+const TABLE_GOLD_TRIM = 0.8;
 
 export class ObjectView {
   mainGroup: Group;
@@ -108,6 +111,7 @@ export class ObjectView {
     tableMesh.position.set(World.WIDTH / 2, World.WIDTH / 2, 0);
     this.mainGroup.add(tableMesh);
 
+    this.addTableFrame();
     this.mainGroup.add(this.center.mesh);
 
     tableMesh.updateMatrixWorld();
@@ -187,12 +191,15 @@ export class ObjectView {
       if (thing.selected) {
         material.color.set(1.1, 1.03, 0.82);
         material.emissive.set(0.15, 0.1, 0.02);
+        if (!thing.held) {
+          obj.position.z += 0.7;
+        }
         this.selectedObjects.push(obj);
       }
 
       if (thing.held) {
         material.transparent = true;
-        material.opacity = thing.temporary ? 0.7 : 1;
+        material.opacity = thing.temporary ? 0.88 : 1;
         material.depthTest = false;
         obj.position.z += 1;
         obj.renderOrder = 1;
@@ -205,6 +212,79 @@ export class ObjectView {
       obj.updateMatrix();
       obj.updateMatrixWorld();
     }
+  }
+
+  private addTableFrame(): void {
+    const railMaterial = new MeshLambertMaterial({ color: 0x7a401d });
+    const railHighlightMaterial = new MeshLambertMaterial({ color: 0xc0782d });
+    const goldMaterial = new MeshLambertMaterial({ color: 0xd8a84a });
+    const darkGrooveMaterial = new MeshLambertMaterial({ color: 0x2f170a });
+    const tableSize = World.WIDTH + 8;
+    const center = World.WIDTH / 2;
+    const outerMin = center - tableSize / 2;
+    const outerMax = center + tableSize / 2;
+    const railZ = TABLE_RAIL_HEIGHT / 2 + 0.02;
+    const topBottomLength = tableSize;
+    const sideLength = tableSize - TABLE_RAIL_THICKNESS * 2;
+
+    const addBox = (
+      name: string,
+      width: number,
+      depth: number,
+      height: number,
+      x: number,
+      y: number,
+      z: number,
+      material: MeshLambertMaterial,
+    ): Mesh => {
+      const mesh = new Mesh(new BoxGeometry(width, depth, height), material);
+      mesh.name = name;
+      mesh.position.set(x, y, z);
+      this.mainGroup.add(mesh);
+      mesh.updateMatrixWorld();
+      return mesh;
+    };
+
+    addBox('table-rail-front', topBottomLength, TABLE_RAIL_THICKNESS, TABLE_RAIL_HEIGHT,
+      center, outerMin + TABLE_RAIL_THICKNESS / 2, railZ, railMaterial);
+    addBox('table-rail-back', topBottomLength, TABLE_RAIL_THICKNESS, TABLE_RAIL_HEIGHT,
+      center, outerMax - TABLE_RAIL_THICKNESS / 2, railZ, railMaterial);
+    addBox('table-rail-left', TABLE_RAIL_THICKNESS, sideLength, TABLE_RAIL_HEIGHT,
+      outerMin + TABLE_RAIL_THICKNESS / 2, center, railZ, railMaterial);
+    addBox('table-rail-right', TABLE_RAIL_THICKNESS, sideLength, TABLE_RAIL_HEIGHT,
+      outerMax - TABLE_RAIL_THICKNESS / 2, center, railZ, railMaterial);
+
+    const innerMin = outerMin + TABLE_RAIL_THICKNESS - 0.4;
+    const innerMax = outerMax - TABLE_RAIL_THICKNESS + 0.4;
+    const trimZ = TABLE_RAIL_HEIGHT + 0.18;
+    const trimLength = innerMax - innerMin;
+
+    addBox('table-gold-front', trimLength, TABLE_GOLD_TRIM, 0.38,
+      center, innerMin, trimZ, goldMaterial);
+    addBox('table-gold-back', trimLength, TABLE_GOLD_TRIM, 0.38,
+      center, innerMax, trimZ, goldMaterial);
+    addBox('table-gold-left', TABLE_GOLD_TRIM, trimLength, 0.38,
+      innerMin, center, trimZ, goldMaterial);
+    addBox('table-gold-right', TABLE_GOLD_TRIM, trimLength, 0.38,
+      innerMax, center, trimZ, goldMaterial);
+
+    addBox('table-wood-front-highlight', trimLength, 0.55, 0.22,
+      center, innerMin + 2.1, trimZ + 0.04, railHighlightMaterial);
+    addBox('table-wood-back-highlight', trimLength, 0.55, 0.22,
+      center, innerMax - 2.1, trimZ + 0.04, railHighlightMaterial);
+    addBox('table-wood-left-highlight', 0.55, trimLength, 0.22,
+      innerMin + 2.1, center, trimZ + 0.04, railHighlightMaterial);
+    addBox('table-wood-right-highlight', 0.55, trimLength, 0.22,
+      innerMax - 2.1, center, trimZ + 0.04, railHighlightMaterial);
+
+    addBox('table-inner-groove-front', trimLength, 0.36, 0.18,
+      center, innerMin + 3.7, trimZ + 0.06, darkGrooveMaterial);
+    addBox('table-inner-groove-back', trimLength, 0.36, 0.18,
+      center, innerMax - 3.7, trimZ + 0.06, darkGrooveMaterial);
+    addBox('table-inner-groove-left', 0.36, trimLength, 0.18,
+      innerMin + 3.7, center, trimZ + 0.06, darkGrooveMaterial);
+    addBox('table-inner-groove-right', 0.36, trimLength, 0.18,
+      innerMax - 3.7, center, trimZ + 0.06, darkGrooveMaterial);
   }
 
   updateDropShadows(places: Array<Place>): void {

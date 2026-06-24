@@ -34,10 +34,12 @@ for (const [from, to] of sourceAssets) {
     throw new Error(`Missing react-02 asset: ${source}`);
   }
   copyFileSync(source, join(sourceRoot, to));
+  console.log(`copied ${from} -> img/react02/source/${to}`);
 }
 
 const writeText = (filename, content) => {
   writeFileSync(join(generatedRoot, filename), content.trimStart(), "utf8");
+  console.log(`generated img/react02/generated/${filename}`);
 };
 
 const tableFeltSvg = `<?xml version="1.0" encoding="UTF-8"?>

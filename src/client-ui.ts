@@ -2,8 +2,8 @@ import { Client } from "./client";
 import { Game } from './base-client';
 
 
-const TITLE_DISCONNECTED = 'Autotable';
-const TITLE_CONNECTED = 'Autotable (online)';
+const TITLE_DISCONNECTED = 'Mahjong 3D Demo';
+const TITLE_CONNECTED = 'Mahjong 3D Demo (online)';
 const RECONNECT_DELAY = 2000;
 const RECONNECT_ATTEMPTS = 15;
 
