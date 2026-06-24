@@ -145,7 +145,7 @@ export class MouseUi {
       this.main.setPointerCapture(event.pointerId);
 
       if (this.dragStart3 === null)  {
-        if (this.world.onDragStart()) {
+        if (this.world.onDragStart(this.hoverUsesCameraPlane)) {
           this.dragStart3 = this.mouse3.clone();
           this.dragPlane = this.makeDragPlane(this.dragStart3, this.hoverUsesCameraPlane);
         } else {
@@ -263,7 +263,17 @@ export class MouseUi {
     }
     this.world.onHover(hovered);
 
+    let tablePos = null;
+    this.raycastTable.position.z = 0;
+    this.raycastTable.updateMatrixWorld();
+    const intersectsTable = this.raycaster.intersectObject(this.raycastTable);
+    if (intersectsTable.length > 0) {
+      tablePos = intersectsTable[0].point.clone();
+      this.raycastGroup.worldToLocal(tablePos);
+    }
+
     let levelPos = null;
+    let dropLevelPos = tablePos;
     if (this.dragPlane !== null) {
       levelPos = new Vector3();
       if (!this.raycaster.ray.intersectPlane(this.dragPlane, levelPos)) {
@@ -272,13 +282,8 @@ export class MouseUi {
         this.raycastGroup.worldToLocal(levelPos);
       }
     } else {
-      this.raycastTable.position.z = this.dragStart3 ? this.dragStart3.z : 0;
-      this.raycastTable.updateMatrixWorld();
-      const intersectsTable = this.raycaster.intersectObject(this.raycastTable);
-      if (intersectsTable.length > 0) {
-        levelPos = intersectsTable[0].point.clone();
-        this.raycastGroup.worldToLocal(levelPos);
-      }
+      levelPos = tablePos;
+      dropLevelPos = levelPos;
     }
 
     if (this.prepareSelection()) {
@@ -298,7 +303,7 @@ export class MouseUi {
         this.mouse3 = hoverPos ?? levelPos ?? this.mouse3;
       }
     }
-    this.world.onMove(this.mouse3);
+    this.world.onMove(this.mouse3, dropLevelPos ?? this.mouse3);
   }
 
   updateCursors(): void {

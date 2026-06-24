@@ -25,6 +25,7 @@ const TABLE_RAIL_HEIGHT = 1.8;
 const TABLE_RAIL_THICKNESS = 5.5;
 const TABLE_GOLD_TRIM = 0.8;
 const DISCARD_MARKER_DURATION_MS = 900;
+const HELD_GLOW_OPACITY = 0.48;
 
 interface TransientMarker {
   mesh: Mesh;
@@ -44,6 +45,7 @@ export class ObjectView {
   private dropShadowProto: Mesh;
   private dropShadowObjects: Array<Mesh>;
   private transientMarkers: Array<TransientMarker>;
+  private heldGlowObjects: Array<Mesh>;
 
   selectedObjects: Array<Mesh>;
 
@@ -55,6 +57,7 @@ export class ObjectView {
     this.center.mesh.position.set(World.WIDTH / 2, World.WIDTH / 2, 0.75);
     this.dropShadowObjects = [];
     this.transientMarkers = [];
+    this.heldGlowObjects = [];
     this.selectedObjects = [];
 
     this.thingGroups = new Map();
@@ -165,6 +168,7 @@ export class ObjectView {
 
   updateThings(things: Array<Render>): void {
     this.selectedObjects.splice(0);
+    const heldGlowPlaces: Array<Place> = [];
     for (const thing of things) {
       if (!SHOW_SCORE_TRAYS && thing.type === ThingType.STICK) {
         continue;
@@ -221,6 +225,9 @@ export class ObjectView {
         material.depthTest = false;
         obj.position.z += 1;
         obj.renderOrder = 1;
+        if (thing.type === ThingType.TILE) {
+          heldGlowPlaces.push(thing.place);
+        }
       }
 
       if (material.transparent !== wasTransparent) {
@@ -230,7 +237,46 @@ export class ObjectView {
       obj.updateMatrix();
       obj.updateMatrixWorld();
     }
+    this.updateHeldGlows(heldGlowPlaces);
     this.updateTransientMarkers();
+  }
+
+  private updateHeldGlows(places: Array<Place>): void {
+    while (this.heldGlowObjects.length < places.length) {
+      const glow = this.assetLoader.makeMarker();
+      glow.name = 'heldTileGlow';
+      glow.renderOrder = 0.5;
+      const material = glow.material as MeshLambertMaterial;
+      material.transparent = true;
+      material.opacity = HELD_GLOW_OPACITY;
+      material.color.set(1.0, 0.86, 0.32);
+      material.emissive.set(0.28, 0.16, 0.02);
+      material.depthWrite = false;
+      material.depthTest = false;
+      this.heldGlowObjects.push(glow);
+      this.mainGroup.add(glow);
+    }
+
+    for (let i = 0; i < this.heldGlowObjects.length; i++) {
+      const glow = this.heldGlowObjects[i];
+      const place = places[i];
+      if (place === undefined) {
+        glow.visible = false;
+        continue;
+      }
+
+      glow.visible = true;
+      glow.position.set(
+        place.position.x,
+        place.position.y,
+        place.position.z - Math.max(0.35, place.size.z * 0.18),
+      );
+      glow.setRotationFromQuaternion(place.rotation);
+      glow.scale.setScalar(1.16);
+      const material = glow.material as MeshLambertMaterial;
+      material.opacity = HELD_GLOW_OPACITY;
+      glow.updateMatrixWorld();
+    }
   }
 
   showDiscardMarker(place: Place): void {

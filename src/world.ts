@@ -34,10 +34,13 @@ export class World {
   private hovered: Thing | null = null;
   private selected: Array<Thing> = [];
   private mouse: Vector3 | null = null;
+  private dropMouse: Vector3 | null = null;
   private camera: Camera | null = null;
 
   private movement: Movement | null = null;
   private heldMouse: Vector3 | null = null;
+  private heldDropMouse: Vector3 | null = null;
+  private dragUsesDropMouse: boolean = false;
   mouseTracker: MouseTracker;
 
   soundPlayer: SoundPlayer;
@@ -307,13 +310,15 @@ export class World {
     this.selected = filterMostCommon(this.selected, thing => thing.slot.group + '@' + thing.slot.seat);
   }
 
-  onMove(mouse: Vector3 | null): void {
+  onMove(mouse: Vector3 | null, dropMouse: Vector3 | null = mouse): void {
     if ((this.mouse === null && mouse === null) ||
         (this.mouse !== null && mouse !== null && this.mouse.equals(mouse))) {
+      this.dropMouse = dropMouse;
       return;
     }
 
     this.mouse = mouse;
+    this.dropMouse = dropMouse;
     this.sendMouse();
 
     this.drag();
@@ -326,6 +331,12 @@ export class World {
     }
 
     this.movement = new Movement();
+    const moveMouse = this.dragUsesDropMouse ? (this.dropMouse ?? this.mouse) : this.mouse;
+    const moveStart = this.dragUsesDropMouse ? (this.heldDropMouse ?? this.heldMouse) : this.heldMouse;
+    if (moveMouse === null || moveStart === null) {
+      this.movement = null;
+      return;
+    }
 
     const held: Array<Thing> = [];
 
@@ -344,8 +355,8 @@ export class World {
     for (let i = 0; i < held.length; i++) {
       const thing = held[i];
       const place = thing.place();
-      const x = place.position.x + this.mouse.x - this.heldMouse.x;
-      const y = place.position.y + this.mouse.y - this.heldMouse.y;
+      const x = place.position.x + moveMouse.x - moveStart.x;
+      const y = place.position.y + moveMouse.y - moveStart.y;
 
       const targetSlot = this.findSlot(x, y, place.size.x, place.size.y, thing.type);
       if (targetSlot === null) {
@@ -431,7 +442,7 @@ export class World {
     return bestSlot;
   }
 
-  onDragStart(): boolean {
+  onDragStart(useDropMouse: boolean = false): boolean {
     if (this.seat === null) {
       return false;
     }
@@ -452,6 +463,8 @@ export class World {
       }
       this.hovered = null;
       this.heldMouse = this.mouse;
+      this.heldDropMouse = this.dropMouse ?? this.mouse;
+      this.dragUsesDropMouse = useDropMouse;
 
       this.drag();
       this.sendMouse();
@@ -628,6 +641,8 @@ export class World {
     }
     this.selected.splice(0);
     this.heldMouse = null;
+    this.heldDropMouse = null;
+    this.dragUsesDropMouse = false;
     this.movement = null;
 
     for (const slot of sourceSlots) {

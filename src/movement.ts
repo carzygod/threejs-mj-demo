@@ -79,6 +79,8 @@ export class Movement {
       let rotationIndex = 0;
       if (thing.slot.group === slot.group) {
         rotationIndex = thing.rotationIndex;
+      } else if (slot.group === 'discard') {
+        rotationIndex = 0;
       } else if (!slot.rotateHeld) {
         const allHeldRotations = [
           thing.heldRotation,
