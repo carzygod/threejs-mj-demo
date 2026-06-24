@@ -3,6 +3,7 @@ dist/
 build/
 .cache/
 apk/
+artifacts/
 *.auto.*
 *.blend1
 .vscode/

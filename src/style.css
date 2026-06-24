@@ -4,7 +4,9 @@ body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background: #1d596b url('../img/table.jpg') center / cover no-repeat;
+    background:
+        radial-gradient(circle at 50% 58%, rgba(10, 77, 61, 0.12), rgba(4, 16, 14, 0.6) 68%),
+        url('../img/react02/source/room-bg-20x9.png') center / cover no-repeat;
     overscroll-behavior: none;
     touch-action: none;
     user-select: none;
@@ -18,7 +20,9 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: #1d596b url('../img/table.jpg') center / cover no-repeat;
+    background:
+        radial-gradient(circle at 50% 58%, rgba(20, 105, 83, 0.08), rgba(2, 11, 10, 0.5) 70%),
+        url('../img/react02/source/room-bg-20x9.png') center / cover no-repeat;
     overflow: hidden;
     touch-action: none;
 }
@@ -32,10 +36,24 @@ body {
 
 #main {
     overflow: hidden;
-    background: #1d596b url('../img/table.jpg') center / cover no-repeat;
+    background: transparent;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+}
+
+#loading {
+    min-width: 11rem;
+    padding: 0.9rem 1.25rem;
+    border: 2px solid rgba(236, 199, 103, 0.72);
+    border-radius: 999px;
+    background: rgba(5, 41, 32, 0.82);
+    box-shadow: 0 0 24px rgba(236, 199, 103, 0.22);
+    color: #ffe8a1 !important;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-align: center;
 }
 
 #main canvas {

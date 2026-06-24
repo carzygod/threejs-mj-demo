@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "author": "Paweł Marczewski <pwmarcz@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "start": "parcel index.html",
+    "watch": "parcel watch index.html",
+    "build:react02-assets": "node scripts/build-react02-asset-pack.mjs",
+    "build": "node ./node_modules/parcel/lib/bin.js build index.html --public-url /threejsDemo/ --no-cache"
+  },
   "devDependencies": {
     "@capacitor/cli": "^8.4.1",
     "@parcel/transformer-image": "2.15.4",

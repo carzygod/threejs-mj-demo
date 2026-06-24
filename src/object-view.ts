@@ -53,8 +53,8 @@ export class ObjectView {
     const plane = new PlaneGeometry(1, 1, 1);
     let material = new MeshBasicMaterial({
       transparent: true,
-      opacity: 0.1,
-      color: 0,
+      opacity: 0.16,
+      color: 0x001812,
       depthWrite: false,
     });
     this.shadowObject = new InstancedMesh(plane, material, MAX_SHADOWS);
@@ -62,7 +62,7 @@ export class ObjectView {
     this.mainGroup.add(this.shadowObject);
 
     material = material.clone();
-    material.opacity = 0.2;
+    material.opacity = 0.24;
 
     this.dropShadowProto = new Mesh(plane, material);
     this.dropShadowProto.name = 'dropShadow';
@@ -107,6 +107,7 @@ export class ObjectView {
     const tableMesh = this.assetLoader.makeTable();
     tableMesh.position.set(World.WIDTH / 2, World.WIDTH / 2, 0);
     this.mainGroup.add(tableMesh);
+
     this.mainGroup.add(this.center.mesh);
 
     tableMesh.updateMatrixWorld();
@@ -176,14 +177,16 @@ export class ObjectView {
       obj.renderOrder = 0;
 
       if (thing.hovered) {
-        material.emissive.set(0.05, 0.05, 0.05);
+        material.emissive.set(0.09, 0.07, 0.02);
       }
 
       if (thing.bottom) {
-        material.color.set(0.8, 0.8, 0.8);
+        material.color.set(0.84, 0.88, 0.78);
       }
 
       if (thing.selected) {
+        material.color.set(1.1, 1.03, 0.82);
+        material.emissive.set(0.15, 0.1, 0.02);
         this.selectedObjects.push(obj);
       }
 

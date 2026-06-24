@@ -40,6 +40,8 @@ export class Center {
     this.texture.center = new Vector2(0.5, 0.5);
     this.texture.anisotropy = 16;
     material.map = this.texture;
+    material.transparent = true;
+    material.depthWrite = false;
 
     this.client = client;
     this.client.nicks.on('update', this.update.bind(this));
@@ -97,77 +99,160 @@ export class Center {
     }
     this.dirty = false;
 
-    const offset = 0.24 * 512;
-    const width = 0.52 * 512;
-
     this.ctx.resetTransform();
-
-    this.ctx.fillStyle = '#000';
-    this.ctx.fillRect(offset, offset, width, width);
-
+    this.ctx.clearRect(0, 0, 512, 512);
     this.ctx.textBaseline = 'middle';
+    this.drawPanel();
 
     this.ctx.translate(256, 256);
+    this.drawCompass();
 
     for (let i = 0; i < 4; i++) {
-      this.drawScore(this.scores[i]);
-      this.drawNick(this.nicks[i]);
+      this.ctx.save();
+      this.ctx.rotate(-Math.PI / 2 * i);
+      this.drawSeatInfo(i);
       if (this.dealer === i) {
         this.drawDealer();
       }
-      this.ctx.rotate(-Math.PI / 2);
+      this.ctx.restore();
     }
 
     if (this.shouldDrawDice) {
+      this.ctx.save();
       this.ctx.rotate(Math.PI / 4);
       this.drawDice();
+      this.ctx.restore();
     }
 
     this.texture.needsUpdate = true;
   }
 
-  drawScore(score: number | null): void {
-    if (score === null) {
-      return;
-    }
+  drawPanel(): void {
+    const ctx = this.ctx;
+    const x = 108;
+    const y = 108;
+    const size = 296;
 
-    this.ctx.textAlign = 'right';
-    this.ctx.font = '40px Segment7Standard, monospace';
-    if (score > 0) {
-      this.ctx.fillStyle = '#eee';
-    } else if (0 <= score && score <= 1000) {
-      this.ctx.fillStyle = '#e80';
-    } else {
-      this.ctx.fillStyle = '#e00';
-    }
-    const text = '' + score;
-    this.ctx.fillText(text, 60, 100);
+    const gradient = ctx.createLinearGradient(x, y, x, y + size);
+    gradient.addColorStop(0, '#0f523c');
+    gradient.addColorStop(0.56, '#063b32');
+    gradient.addColorStop(1, '#052a24');
+
+    ctx.save();
+    this.roundRect(x, y, size, size, 26);
+    ctx.fillStyle = 'rgba(4, 22, 18, 0.72)';
+    ctx.fill();
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = 'rgba(255, 225, 127, 0.72)';
+    ctx.stroke();
+
+    this.roundRect(x + 16, y + 16, size - 32, size - 32, 18);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255, 237, 167, 0.48)';
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.font = '700 32px "Microsoft YaHei", SimHei, sans-serif';
+    ctx.fillStyle = '#ffe6a0';
+    ctx.fillText(`第${this.honba + 1}局`, 256, 205);
+    ctx.font = '700 22px "Microsoft YaHei", SimHei, sans-serif';
+    ctx.fillStyle = '#c8f3d5';
+    ctx.fillText('江南麻将', 256, 306);
+    ctx.restore();
   }
 
-  drawNick(nick: string | null): void {
-    let text;
-    if (nick === null) {
-      text = '';
-    } else if (nick === '') {
-      text = 'Player';
-    } else {
-      text = nick.substr(0, 10);
-    }
+  drawCompass(): void {
+    const ctx = this.ctx;
+    const winds = [
+      { text: '北', x: 0, y: -86 },
+      { text: '东', x: 84, y: 0 },
+      { text: '南', x: 0, y: 86 },
+      { text: '西', x: -84, y: 0 },
+    ];
 
-    this.ctx.textAlign = 'center';
-    this.ctx.font = '20px Verdana, Arial';
-    this.ctx.fillStyle = '#afa';
-    this.ctx.fillText(text, 0, 55);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, 52, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(3, 27, 23, 0.72)';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(246, 205, 97, 0.55)';
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.font = '700 25px "Microsoft YaHei", SimHei, sans-serif';
+    for (const wind of winds) {
+      ctx.fillStyle = '#f6d27b';
+      ctx.fillText(wind.text, wind.x, wind.y);
+    }
+    ctx.restore();
+  }
+
+  drawSeatInfo(index: number): void {
+    const score = this.scores[index];
+    const nick = this.formatNick(this.nicks[index]);
+    const ctx = this.ctx;
+
+    ctx.save();
+    this.roundRect(-74, -138, 148, 32, 10);
+    ctx.fillStyle = 'rgba(5, 38, 32, 0.72)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(229, 190, 87, 0.45)';
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    ctx.font = '700 17px "Microsoft YaHei", SimHei, sans-serif';
+    ctx.fillStyle = '#f9e5a2';
+    ctx.fillText(nick, 0, -126);
+
+    if (score !== null) {
+      ctx.font = '700 18px Verdana, Arial, sans-serif';
+      ctx.fillStyle = score < 0 ? '#ff9f76' : '#c8f3d5';
+      ctx.fillText(String(score), 0, -104);
+    }
+    ctx.restore();
   }
 
   drawDealer(): void {
-    this.ctx.fillStyle = '#a60';
-    this.ctx.fillRect(-132, 132, 264, -13);
-    if (this.honba > 0) {
-      this.ctx.textAlign = 'right';
-      this.ctx.font = '40px Segment7Standard, monospace';
-      this.ctx.fillText('' + this.honba, -90, 100);
+    const ctx = this.ctx;
+    ctx.save();
+    this.roundRect(-28, -101, 56, 24, 8);
+    ctx.fillStyle = '#b67b19';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#ffeba7';
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.font = '700 16px "Microsoft YaHei", SimHei, sans-serif';
+    ctx.fillStyle = '#fff4c2';
+    ctx.fillText('庄', 0, -89);
+    ctx.restore();
+  }
+
+  formatNick(nick: string | null): string {
+    if (nick === null || nick === '') {
+      return '玩家';
     }
+    return nick.substring(0, 8);
+  }
+
+  roundRect(x: number, y: number, width: number, height: number, radius: number): void {
+    const ctx = this.ctx;
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    ctx.lineTo(x + r, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
   }
 
   drawDice(): void {

@@ -1,7 +1,7 @@
 // @ts-ignore
-import tableJpg from 'url:../img/table.jpg';
+import tableFeltSvg from 'url:../img/react02/generated/table-felt.svg';
 // @ts-ignore
-import tilesLabelsPng from 'url:../img/tiles-labels.auto.png';
+import tilesLabelsSvg from 'url:../img/react02/generated/tile-labels-react02.svg';
 // @ts-ignore
 import glbModels from 'url:../img/models.auto.glb';
 
@@ -55,14 +55,14 @@ export class AssetLoader {
 
   loadAll(): Promise<void> {
     return Promise.all([
-      this.loadTexture(tableJpg, 'table'),
-      this.loadTexture(tilesLabelsPng, 'tilesLabels'),
+      this.loadTexture(tableFeltSvg, 'table'),
+      this.loadTexture(tilesLabelsSvg, 'tilesLabels'),
       this.loadModels(glbModels),
       (document as any).fonts.load('40px "Segment7Standard"'),
     ]).then(() => {
       this.textures.table.wrapS = RepeatWrapping;
       this.textures.table.wrapT = RepeatWrapping;
-      this.textures.table.repeat.set(3, 3);
+      this.textures.table.repeat.set(1, 1);
     });
   }
 
