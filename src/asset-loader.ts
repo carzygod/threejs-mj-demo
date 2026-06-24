@@ -1,7 +1,7 @@
 // @ts-ignore
 import tableFeltSvg from 'url:../img/react02/generated/table-felt.svg';
 // @ts-ignore
-import tilesLabelsSvg from 'url:../img/react02/generated/tile-labels-react02.svg';
+import tilesLabelsPng from 'url:../img/react02/generated/tile-labels-react02.png';
 // @ts-ignore
 import discardMarkerSvg from 'url:../img/react02/generated/fx-discard-marker.svg';
 // @ts-ignore
@@ -68,7 +68,7 @@ export class AssetLoader {
   loadAll(): Promise<void> {
     return Promise.all([
       this.loadTexture(tableFeltSvg, 'table'),
-      this.loadTexture(tilesLabelsSvg, 'tilesLabels'),
+      this.loadTexture(tilesLabelsPng, 'tilesLabels'),
       this.loadTexture(discardMarkerSvg, 'discardMarker'),
       this.loadModels(glbModels),
       (document as any).fonts.load('40px "Segment7Standard"'),

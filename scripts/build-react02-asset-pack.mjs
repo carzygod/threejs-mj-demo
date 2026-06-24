@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -17,9 +18,19 @@ const uiRoot = join(
 const outputRoot = join(root, "img", "react02");
 const sourceRoot = join(outputRoot, "source");
 const generatedRoot = join(outputRoot, "generated");
+const tileAssetRoot = join(
+  react02Root,
+  "public",
+  "assets",
+  "design-trim",
+  "游戏组件",
+  "麻将牌"
+);
+const tileFaceSourceRoot = join(sourceRoot, "tile-faces");
 
 mkdirSync(sourceRoot, { recursive: true });
 mkdirSync(generatedRoot, { recursive: true });
+mkdirSync(tileFaceSourceRoot, { recursive: true });
 
 const sourceAssets = [
   ["BG-ROOM-JIANGNAN-NIGHT.png", "room-bg-20x9.png"],
@@ -40,6 +51,16 @@ for (const [from, to] of sourceAssets) {
 const writeText = (filename, content) => {
   writeFileSync(join(generatedRoot, filename), content.trimStart(), "utf8");
   console.log(`generated img/react02/generated/${filename}`);
+};
+
+const copyTileAsset = filename => {
+  const source = join(tileAssetRoot, filename);
+  if (!existsSync(source)) {
+    throw new Error(`Missing react-02 tile asset: ${source}`);
+  }
+
+  copyFileSync(source, join(tileFaceSourceRoot, filename));
+  return source;
 };
 
 const tableFeltSvg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -107,105 +128,32 @@ const discardMarkerSvg = `<?xml version="1.0" encoding="UTF-8"?>
   <circle cx="128" cy="128" r="96" fill="none" stroke="#c9861b" stroke-width="4" stroke-opacity=".56"/>
 </svg>`;
 
-const numerals = ["一", "二", "三", "四", "五", "六", "七", "八", "九"];
+const numberedTileAssets = suit =>
+  Array.from({ length: 9 }, (_, index) => ({
+    asset: `mahjong_${suit}_${String(index + 1).padStart(2, "0")}${suit === "tong" && index + 1 >= 6 && index + 1 !== 7 ? ".webp" : suit === "tiao" && index + 1 === 9 ? ".webp" : ".png"}`,
+  }));
+
 const tileDefs = [
-  ...numerals.map((n, i) => ({ kind: "wan", value: i + 1, main: n, sub: "萬" })),
-  ...numerals.map((n, i) => ({ kind: "tong", value: i + 1, main: n, sub: "筒" })),
-  ...numerals.map((n, i) => ({ kind: "tiao", value: i + 1, main: n, sub: "條" })),
-  { kind: "wind", main: "東" },
-  { kind: "wind", main: "南" },
-  { kind: "wind", main: "西" },
-  { kind: "wind", main: "北" },
-  { kind: "dragon", main: "白" },
-  { kind: "dragon", main: "發" },
-  { kind: "dragon-red", main: "中" },
-  { kind: "red", main: "伍", sub: "萬" },
+  ...numberedTileAssets("wan"),
+  ...numberedTileAssets("tong"),
+  ...numberedTileAssets("tiao"),
+  { asset: "mahjong_wind_east.png" },
+  { asset: "mahjong_wind_south.png" },
+  { asset: "mahjong_wind_west.png" },
+  { asset: "mahjong_wind_north.png" },
+  { asset: "mahjong_dragon_bai.png" },
+  { asset: "mahjong_dragon_fa.png" },
+  { asset: "mahjong_dragon_zhong.png" },
+  { asset: "mahjong_wan_05.png" },
+  { asset: "mahjong_tong_05.png" },
+  { asset: "mahjong_tiao_05.png" },
 ];
 
-const dots = (count, cx, cy, gap, radius) => {
-  const patterns = {
-    1: [[0, 0]],
-    2: [[-0.55, -0.55], [0.55, 0.55]],
-    3: [[-0.6, -0.6], [0, 0], [0.6, 0.6]],
-    4: [[-0.55, -0.55], [0.55, -0.55], [-0.55, 0.55], [0.55, 0.55]],
-    5: [[-0.62, -0.62], [0.62, -0.62], [0, 0], [-0.62, 0.62], [0.62, 0.62]],
-    6: [[-0.62, -0.7], [0.62, -0.7], [-0.62, 0], [0.62, 0], [-0.62, 0.7], [0.62, 0.7]],
-    7: [[-0.7, -0.7], [0, -0.7], [0.7, -0.7], [-0.48, 0], [0.48, 0], [-0.48, 0.7], [0.48, 0.7]],
-    8: [[-0.7, -0.75], [0, -0.75], [0.7, -0.75], [-0.7, 0], [0.7, 0], [-0.7, 0.75], [0, 0.75], [0.7, 0.75]],
-    9: [[-0.7, -0.72], [0, -0.72], [0.7, -0.72], [-0.7, 0], [0, 0], [0.7, 0], [-0.7, 0.72], [0, 0.72], [0.7, 0.72]],
-  };
+const tileBackAsset = "mahjong_back_green_wave.webp";
 
-  return patterns[count]
-    .map(([x, y], index) => {
-      const color = index % 2 === 0 ? "#b9231f" : "#0b7a54";
-      return `<circle cx="${cx + x * gap}" cy="${cy + y * gap}" r="${radius}" fill="none" stroke="${color}" stroke-width="3.4"/>
-        <circle cx="${cx + x * gap}" cy="${cy + y * gap}" r="${radius * 0.45}" fill="${color}" opacity=".88"/>`;
-    })
-    .join("\n");
-};
-
-const bamboos = (count, cx, cy, gap) => {
-  const patterns = {
-    1: [[0, 0]],
-    2: [[-0.38, 0], [0.38, 0]],
-    3: [[-0.55, 0], [0, 0], [0.55, 0]],
-    4: [[-0.45, -0.45], [0.45, -0.45], [-0.45, 0.45], [0.45, 0.45]],
-    5: [[-0.55, -0.5], [0.55, -0.5], [0, 0], [-0.55, 0.5], [0.55, 0.5]],
-    6: [[-0.58, -0.55], [0, -0.55], [0.58, -0.55], [-0.58, 0.55], [0, 0.55], [0.58, 0.55]],
-    7: [[-0.58, -0.62], [0, -0.62], [0.58, -0.62], [-0.58, 0], [0.58, 0], [-0.35, 0.62], [0.35, 0.62]],
-    8: [[-0.62, -0.65], [0, -0.65], [0.62, -0.65], [-0.62, 0], [0.62, 0], [-0.62, 0.65], [0, 0.65], [0.62, 0.65]],
-    9: [[-0.62, -0.65], [0, -0.65], [0.62, -0.65], [-0.62, 0], [0, 0], [0.62, 0], [-0.62, 0.65], [0, 0.65], [0.62, 0.65]],
-  };
-
-  return patterns[count]
-    .map(([x, y], index) => {
-      const color = count === 1 || index % 4 === 0 ? "#b9231f" : "#12754b";
-      const px = cx + x * gap;
-      const py = cy + y * gap;
-      return `<rect x="${px - 5}" y="${py - 17}" width="10" height="34" rx="4" fill="${color}"/>
-        <path d="M${px - 7} ${py - 5}H${px + 7}M${px - 7} ${py + 6}H${px + 7}" stroke="#f3fff2" stroke-width="2" opacity=".65"/>`;
-    })
-    .join("\n");
-};
-
-const tileFace = (tile, index) => {
-  const col = index % 8;
-  const row = Math.floor(index / 8);
-  const x = col * 64;
-  const y = row * 80;
-  const cx = x + 32;
-  const red = tile.kind === "dragon-red" || tile.kind === "red";
-  let marks = "";
-
-  if (tile.kind === "tong") {
-    marks = dots(tile.value, cx, y + 41, tile.value > 6 ? 18 : 22, tile.value > 6 ? 5.2 : 6.4);
-  } else if (tile.kind === "tiao") {
-    marks = bamboos(tile.value, cx, y + 41, tile.value > 6 ? 17 : 21);
-  } else {
-    marks = `
-      <text x="${cx}" y="${y + 38}" text-anchor="middle" font-size="${tile.sub ? 29 : 40}" font-weight="800"
-        fill="${red ? "#b9231f" : tile.kind === "dragon" ? "#0b7a54" : "#151815"}">${tile.main}</text>
-      ${tile.sub ? `<text x="${cx}" y="${y + 64}" text-anchor="middle" font-size="20" font-weight="800" fill="#b9231f">${tile.sub}</text>` : ""}
-    `;
-  }
-
-  return `
-    <g>
-      <rect x="${x + 4}" y="${y + 4}" width="56" height="70" rx="7" fill="#f8f5e8"/>
-      <rect x="${x + 6}" y="${y + 6}" width="52" height="65" rx="6" fill="url(#faceGrad)"/>
-      <path d="M${x + 9} ${y + 65}H${x + 55}V${y + 71}H${x + 9}Z" fill="#5ebd70" opacity=".5"/>
-      ${marks}
-    </g>`;
-};
-
-const tileAtlasSvg = `<?xml version="1.0" encoding="UTF-8"?>
+const tileAtlasBaseSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="faceGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#fffef6"/>
-      <stop offset="66%" stop-color="#ece9dd"/>
-      <stop offset="100%" stop-color="#d2d3ca"/>
-    </linearGradient>
     <linearGradient id="backGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#9cf279"/>
       <stop offset="45%" stop-color="#4bc65a"/>
@@ -220,17 +168,72 @@ const tileAtlasSvg = `<?xml version="1.0" encoding="UTF-8"?>
   <rect width="512" height="512" fill="#23884e"/>
   <rect y="320" width="512" height="96" fill="url(#backGrad)"/>
   <rect y="416" width="512" height="96" fill="url(#sideGrad)"/>
-  <g font-family="Microsoft YaHei, SimHei, Noto Sans CJK SC, serif" dominant-baseline="middle">
-    ${tileDefs.map(tileFace).join("\n")}
-  </g>
   <g opacity=".26">
     <path d="M0 320H512M0 400H512M0 416H512" stroke="#043021" stroke-width="3"/>
     <path d="M0 472H512" stroke="#ffffff" stroke-width="3"/>
   </g>
 </svg>`;
 
+const renderTileImage = async filename =>
+  sharp(copyTileAsset(filename))
+    .resize({
+      width: 56,
+      height: 76,
+      fit: "contain",
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png()
+    .toBuffer();
+
+const renderBackImage = async filename =>
+  sharp(copyTileAsset(filename))
+    .resize({
+      width: 192,
+      height: 96,
+      fit: "cover",
+      position: "centre",
+    })
+    .png()
+    .toBuffer();
+
+const shadowSvg = (cx, cy) => Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="80" viewBox="0 0 64 80">
+    <ellipse cx="${cx}" cy="${cy}" rx="24" ry="5" fill="#002b20" opacity=".18"/>
+  </svg>`
+);
+
+const generateTileAtlas = async () => {
+  const composites = [{ input: Buffer.from(tileAtlasBaseSvg), left: 0, top: 0 }];
+
+  for (let index = 0; index < tileDefs.length; index++) {
+    const col = index % 8;
+    const row = Math.floor(index / 8);
+    const x = col * 64;
+    const y = row * 80;
+    composites.push({ input: shadowSvg(32, 72), left: x, top: y });
+    composites.push({ input: await renderTileImage(tileDefs[index].asset), left: x + 4, top: y + 2 });
+  }
+
+  composites.push({ input: await renderBackImage(tileBackAsset), left: 320, top: 320 });
+
+  const output = join(generatedRoot, "tile-labels-react02.png");
+  await sharp({
+    create: {
+      width: 512,
+      height: 512,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite(composites)
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toFile(output);
+
+  console.log("generated img/react02/generated/tile-labels-react02.png");
+};
+
 writeText("table-felt.svg", tableFeltSvg);
-writeText("tile-labels-react02.svg", tileAtlasSvg);
+await generateTileAtlas();
 writeText("fx-discard-marker.svg", discardMarkerSvg);
 
 console.log(`React-02 asset pack generated at ${outputRoot}`);
