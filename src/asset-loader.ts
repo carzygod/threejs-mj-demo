@@ -1,7 +1,7 @@
 // @ts-ignore
 import tableFeltSvg from 'url:../img/react02/generated/table-felt.svg';
 // @ts-ignore
-import tilesLabelsPng from 'url:../img/react02/generated/tile-labels-react02.png';
+import tilesLabelsPng from 'url:../img/tiles-labels.auto.png';
 // @ts-ignore
 import discardMarkerSvg from 'url:../img/react02/generated/fx-discard-marker.svg';
 // @ts-ignore
