@@ -506,6 +506,7 @@ export class World {
     thing.moveTo(target, 0);
     this.checkPushes();
     this.soundPlayer.play(SoundType.DISCARD, this.seat);
+    this.showDiscardMarker(target);
     this.finishDrop([source]);
     return true;
   }
@@ -579,6 +580,7 @@ export class World {
 
     const sourceSlots = [];
     let discardSide = null;
+    let discardTarget: Slot | null = null;
     let hasStick = false;
     for (const thing of this.movement.things()) {
       const source = thing.slot;
@@ -586,6 +588,7 @@ export class World {
       if (target.group === 'discard' &&
         !(source.group === 'discard' && source.seat === target.seat)) {
         discardSide = target.seat;
+        discardTarget = target;
       } else if (target.group === 'riichi') {
         hasStick = true;
       }
@@ -598,6 +601,9 @@ export class World {
 
     if (discardSide !== null) {
       this.soundPlayer.play(SoundType.DISCARD, discardSide);
+      if (discardTarget !== null) {
+        this.showDiscardMarker(discardTarget);
+      }
     }
     if (hasStick) {
       this.soundPlayer.play(SoundType.STICK, null);
@@ -606,6 +612,10 @@ export class World {
 
   private dropInPlace(): void {
     this.finishDrop([]);
+  }
+
+  private showDiscardMarker(slot: Slot): void {
+    this.objectView.showDiscardMarker(slot.placeWithOffset(0));
   }
 
   private finishDrop(sourceSlots: Array<Slot>): void {

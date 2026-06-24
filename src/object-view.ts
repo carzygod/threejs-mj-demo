@@ -24,6 +24,13 @@ const SHOW_SCORE_TRAYS = false;
 const TABLE_RAIL_HEIGHT = 1.8;
 const TABLE_RAIL_THICKNESS = 5.5;
 const TABLE_GOLD_TRIM = 0.8;
+const DISCARD_MARKER_DURATION_MS = 900;
+
+interface TransientMarker {
+  mesh: Mesh;
+  startedAt: number;
+  baseZ: number;
+}
 
 export class ObjectView {
   mainGroup: Group;
@@ -36,6 +43,7 @@ export class ObjectView {
   private shadowObject: InstancedMesh;
   private dropShadowProto: Mesh;
   private dropShadowObjects: Array<Mesh>;
+  private transientMarkers: Array<TransientMarker>;
 
   selectedObjects: Array<Mesh>;
 
@@ -46,6 +54,7 @@ export class ObjectView {
     this.center = new Center(this.assetLoader, client);
     this.center.mesh.position.set(World.WIDTH / 2, World.WIDTH / 2, 0.75);
     this.dropShadowObjects = [];
+    this.transientMarkers = [];
     this.selectedObjects = [];
 
     this.thingGroups = new Map();
@@ -177,8 +186,17 @@ export class ObjectView {
       material.color.set(1.0, 1.0, 1.0);
       material.emissive.set(0.0, 0.0, 0.0);
       material.transparent = false;
+      material.opacity = 1;
+      material.depthWrite = true;
       material.depthTest = true;
       obj.renderOrder = 0;
+
+      if (thing.type === ThingType.MARKER) {
+        material.transparent = true;
+        material.opacity = 0.74;
+        material.depthWrite = false;
+        obj.renderOrder = 2;
+      }
 
       if (thing.hovered) {
         material.emissive.set(0.09, 0.07, 0.02);
@@ -211,6 +229,56 @@ export class ObjectView {
 
       obj.updateMatrix();
       obj.updateMatrixWorld();
+    }
+    this.updateTransientMarkers();
+  }
+
+  showDiscardMarker(place: Place): void {
+    const marker = this.assetLoader.makeMarker();
+    marker.position.set(
+      place.position.x,
+      place.position.y,
+      Math.max(0.12, place.position.z - place.size.z / 2 + 0.08),
+    );
+    marker.setRotationFromQuaternion(place.rotation);
+    marker.scale.setScalar(1.05);
+    marker.renderOrder = 4;
+
+    const material = marker.material as MeshLambertMaterial;
+    material.transparent = true;
+    material.opacity = 0.94;
+    material.depthWrite = false;
+
+    this.transientMarkers.push({
+      mesh: marker,
+      startedAt: performance.now(),
+      baseZ: marker.position.z,
+    });
+    this.mainGroup.add(marker);
+    marker.updateMatrixWorld();
+  }
+
+  private updateTransientMarkers(): void {
+    const now = performance.now();
+    for (let i = this.transientMarkers.length - 1; i >= 0; i--) {
+      const marker = this.transientMarkers[i];
+      const age = now - marker.startedAt;
+      const progress = Math.min(1, age / DISCARD_MARKER_DURATION_MS);
+
+      if (progress >= 1) {
+        this.mainGroup.remove(marker.mesh);
+        marker.mesh.geometry.dispose();
+        (marker.mesh.material as MeshLambertMaterial).dispose();
+        this.transientMarkers.splice(i, 1);
+        continue;
+      }
+
+      const eased = 1 - Math.pow(1 - progress, 2);
+      const material = marker.mesh.material as MeshLambertMaterial;
+      material.opacity = 0.94 * (1 - eased);
+      marker.mesh.scale.setScalar(1.05 + eased * 0.34);
+      marker.mesh.position.z = marker.baseZ + eased * 0.18;
+      marker.mesh.updateMatrixWorld();
     }
   }
 
