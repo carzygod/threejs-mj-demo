@@ -54,6 +54,15 @@ const writeText = (filename, content) => {
   console.log(`generated img/react02/generated/${filename}`);
 };
 
+const generateRoomBackground = async () => {
+  const source = join(sourceRoot, "room-bg-20x9.png");
+  const output = join(generatedRoot, "room-bg-20x9.webp");
+  await sharp(source)
+    .webp({ quality: 82, effort: 5 })
+    .toFile(output);
+  console.log("generated img/react02/generated/room-bg-20x9.webp");
+};
+
 const copyTileAsset = filename => {
   const source = join(tileAssetRoot, filename);
   if (!existsSync(source)) {
@@ -291,6 +300,7 @@ const generateTileAtlas = async () => {
   console.log("generated img/react02/generated/tile-labels-react02.png");
 };
 
+await generateRoomBackground();
 writeText("table-felt.svg", tableFeltSvg);
 await generateTileAtlas();
 await generateDiceStrip();
