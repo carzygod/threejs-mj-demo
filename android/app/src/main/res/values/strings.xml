@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Autotable</string>
+    <string name="title_activity_main">Autotable</string>
+    <string name="package_name">pl.pwmarcz.autotable.android</string>
+    <string name="custom_url_scheme">pl.pwmarcz.autotable.android</string>
+</resources>

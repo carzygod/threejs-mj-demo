@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.cache/
+apk/
+*.auto.*
+*.blend1
+.vscode/
+.parcel-cache/

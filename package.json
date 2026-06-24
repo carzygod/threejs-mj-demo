@@ -1,0 +1,27 @@
+{
+  "name": "autotable",
+  "version": "1.0.0",
+  "author": "Paweł Marczewski <pwmarcz@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
+    "@parcel/transformer-image": "2.15.4",
+    "@types/events": "^3.0.3",
+    "@types/jquery": "^3.5.33",
+    "@types/three": "^0.179.0",
+    "@typescript-eslint/eslint-plugin": "^8.40.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.34.0",
+    "parcel": "^2.15.4",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "bootstrap": "^4.4.1",
+    "events": "^3.1.0",
+    "jquery": "^3.7.1",
+    "popper.js": "^1.16.1",
+    "three": "^0.179.0"
+  }
+}

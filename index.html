@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Autotable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <link href="img/icon-96.auto.png" rel="shortcut icon" sizes="96x96">
+    <link href="img/icon-32.auto.png" rel="shortcut icon" sizes="32x32">
+    <link href="img/icon-16.auto.png" rel="shortcut icon" sizes="16x16">
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
+    <link rel="stylesheet" href="./src/style.css">
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-50655023-2', 'pwmarcz.pl');
+        ga('send', 'pageview');
+      </script>
+    </head>
+<body>
+    <img id="dice-img" src="img/dice.auto.png" style="opacity: 0">
+    <canvas id="center"></canvas>
+    <!-- https://opengameart.org/content/thwack-sounds -->
+    <audio preload id="sound-discard" src="./sound/discard.wav"></audio>
+    <!-- https://opengameart.org/content/54-casino-sound-effects-cards-dice-chips -->
+    <audio preload id="sound-stick" src="./sound/stick.wav"></audio>
+    <div id="full">
+        <div id="loading" class="centered text-white-50">Loading...</div>
+        <div id="main" class="centered">
+            <div id="selection"></div>
+            <div class="cursor rotate-0"></div>
+            <div class="cursor rotate-1"></div>
+            <div class="cursor rotate-2"></div>
+            <div class="cursor rotate-3"></div>
+        </div>
+        <div class="seat-buttons">
+            <div class="seat-button seat-button-0">
+                <button class="take-seat btn btn-primary">Take seat</button>
+                <button class="kick btn btn-dark btn-progress-main" style="display: none"
+                        data-toggle="tooltip" data-placement="top"
+                        title="Click and hold to unseat">
+                    <div class="btn-progress"></div>
+                    <span class="btn-progress-text"></span>
+                </button>
+            </div>
+            <div class="seat-button seat-button-1">
+                <button class="take-seat btn btn-primary">Take seat</button>
+                <button class="kick btn btn-dark btn-progress-main" style="display: none"
+                        data-toggle="tooltip" data-placement="top"
+                        title="Click and hold to unseat">
+                    <div class="btn-progress"></div>
+                    <span class="btn-progress-text"></span>
+                </button>
+            </div>
+            <div class="seat-button seat-button-2">
+                <button class="take-seat btn btn-primary">Take seat</button>
+                <button class="kick btn btn-dark btn-progress-main" style="display: none"
+                        data-toggle="tooltip" data-placement="top"
+                        title="Click and hold to unseat">
+                    <div class="btn-progress"></div>
+                    <span class="btn-progress-text"></span>
+                </button>
+            </div>
+            <div class="seat-button seat-button-3">
+                <button class="take-seat btn btn-primary">Take seat</button>
+                <button class="kick btn btn-dark btn-progress-main" style="display: none"
+                        data-toggle="tooltip" data-placement="top"
+                        title="Click and hold to unseat">
+                    <div class="btn-progress"></div>
+                    <span class="btn-progress-text"></span>
+                </button>
+            </div>
+        </div>
+
+        <div id="sidebar" class="collapsed container text-light">
+            <div class="d-flex">
+                <button class="btn btn-warning btn-sm w-100 btn-progress-main" id="deal">
+                    <div class="btn-progress"></div>
+                    <span class="btn-progress-text">Deal</span>
+                </button>
+            </div>
+
+            <div class="mt-2 d-flex">
+                <button disabled class="btn btn-sm btn-outline-secondary text-white w-100 mr-2" id="setup-desc">
+                </button>
+                <button class="btn btn-dark btn-sm dropdown-toggle collapsed" id="toggle-setup"
+                    data-toggle="collapse" data-target="#setup-group">Setup</button>
+            </div>
+
+            <div id="setup-group" class="collapse" data-toggle="true">
+                <select class="dark-select form-control form-control-sm mt-2" id="deal-type">
+                    <option disabled value="">Deal:</option>
+                    <option value="UNSHUFFLED">Only walls (not shuffled)</option>
+                    <option value="HANDS" selected>Hands</option>
+                    <option value="INITIAL">Only walls</option>
+                    <option value="WINDS">Wind tiles (for seats)</option>
+                </select>
+                <select class="dark-select form-control form-control-sm mt-2" id="game-type">
+                    <option disabled value="">Game type:</option>
+                    <option value="FOUR_PLAYER" selected>4-player</option>
+                    <option value="THREE_PLAYER">3-player</option>
+                    <option value="MINEFIELD">2-player Minefield</option>
+                    <option value="BAMBOO">2-player Bamboo</option>
+                    <option value="FOUR_PLAYER_DEMO">Demo</option>
+                </select>
+                <select class="dark-select form-control form-control-sm mt-2" id="fives">
+                    <option disabled value="">Red fives:</option>
+                    <option value="000">No red fives</option>
+                    <option value="111" selected>1-1-1</option>
+                    <option value="121">1-2-1</option>
+                </select>
+                <div class="mt-2 d-flex">
+                    <select class="dark-select form-control form-control-sm mr-2 w-100" id="points">
+                        <option disabled value="">Starting points:</option>
+                        <option value="25" selected>25k</option>
+                        <option value="30">30k</option>
+                        <option value="35">35k</option>
+                        <option value="40">40k</option>
+                        <option value="100" selected>100k</option>
+                    </select>
+                    <button class="btn btn-dark flex-shrink-1 btn-sm btn-progress-main" id="reset-points"
+                        data-toggle="tooltip" data-placement="top"
+                        title="Click and hold to reset point sticks"
+                    >
+                        <div class="btn-progress"></div>
+                        <span class="btn-progress-text">Reset</span>
+                    </button>
+                </div>
+                <br>
+            </div>
+
+            <div class="mt-2 d-flex">
+                <button class="btn btn-secondary btn-sm mr-2 w-100" id="toggle-dealer">Dealer</button>
+                <button class="btn btn-secondary btn-sm w-100" id="toggle-honba">Honba</button>
+            </div>
+
+            <div class="mt-4 d-flex" id="server">
+                <button class="btn btn-warning btn-sm w-100 server-disconnected mr-2" id="connect">
+                    Connect
+                </button>
+                <button class="btn btn-secondary btn-sm w-100 server-connected mr-2" id="disconnect">
+                    Disconnect
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-secondary btn-sm btn-block dropdown-toggle" data-toggle="dropdown">
+                        Nick
+                    </button>
+                    <div class="dropdown-menu p-3 text-light">
+                        <input class="form-control form-control-sm" id="nick" type="text"></input>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex mt-2">
+                <button class="btn btn-dark btn-sm mr-2 w-100" id="leave-seat">Leave seat</button>
+                <div class="dropdown">
+                    <button class="btn btn-dark btn-sm btn-block dropdown-toggle" data-toggle="dropdown">
+                        More
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right p-3 text-light" style="width: 300px;">
+                        <h4>Instructions</h4>
+                        <p>
+                        <b>Drag mouse</b> to move or select<br>
+                        Press <b>F</b> or <b>right-click</b> to flip or rotate<br>
+                        Press <b>R</b> to rotate backwards; for example hide your hand<br>
+                        Hold <b>SPACE</b> (or press <b>Q</b>) to look down<br>
+                        Hold <b>Z</b> to zoom in<br>
+                        Hold <b>X</b> to zoom out<br>
+                        Press <b>P</b> to toggle perspective mode
+                        Press <b>L</b> to toggle tile labels
+                        </p>
+                        <h4>Settings</h4>
+                        <label>
+                            <input type="checkbox" id="perspective" checked>
+                            Perspective mode
+                        </label>
+                        <label>
+                            <input type="checkbox" id="benchmark">
+                            Benchmark mode (don't limit FPS)
+                        </label>
+                        <label>
+                            <input type="checkbox" id="muted">
+                            Mute sound
+                        </label>
+                        <label>
+                            <input type="checkbox" id="sticky">
+                            Sticky mouse (click to grab)
+                        </label>
+                        <label>
+                            <input type="checkbox" id="tile-labels" checked>
+                            Tile labels
+                        </label>
+                        <button class="btn btn-secondary btn-sm btn-block mt-2" id="new-game">New game</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <small>
+                    <a class="text-light show-modal" target="_blank" href="https://pwmarcz.pl/mahjong/riichi-cheat-sheet/Teaching%20Sheet.pdf">Simplified scoring</a>
+                    <br>
+                    <a class="text-light show-modal" target="_blank" href="https://pwmarcz.pl/mahjong/riichi-cheat-sheet/Cheat%20Sheet%20%28Portrait%29.pdf">Full scoring</a>
+                </small>
+            </div>
+
+            <div class="mt-2">
+                <small>
+                    <a class="text-white-50" target="_blank" href="about.html">About the project</a>
+                </small>
+            </div>
+
+            <div class="text-warning mt-2" id="status" style="display: none">
+                <small class="mt-2" id="status-text">
+                    Status text
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="viewer-modal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-body"></div>
+                <div style="padding: 1rem; padding-top: 0; margin-top: -0.5rem;">
+                    (source: <a target="_blank" href="https://www.reddit.com/r/Mahjong/comments/l5b221/riichi_mahjong_cheat_sheet_1_page_pdf_or_images/">Aranlyde</a>)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./src/index.ts"></script>
+</body>
+</html>

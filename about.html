@@ -1,0 +1,195 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Autotable - an online mahjong table</title>
+    <meta name="viewport" content="width=device-width">
+    <link href="img/icon-96.auto.png" rel="shortcut icon" sizes="96x96">
+    <link href="img/icon-32.auto.png" rel="shortcut icon" sizes="32x32">
+    <link href="img/icon-16.auto.png" rel="shortcut icon" sizes="16x16">
+    <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.css">
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-50655023-2', 'pwmarcz.pl');
+        ga('send', 'pageview');
+    </script>
+    <style>
+        body {
+            display: flex;
+            background: #000;
+            color: #ccc;
+        }
+
+        .main {
+            max-width: 720px;
+            background: rgb(7, 46, 66);
+            box-shadow: 0 0 20px 20px rgb(7, 46, 66);
+        }
+
+        .pic {
+            text-align: center;
+            margin-bottom: 1em;
+        }
+
+        h1, h2, h3 {
+            color: #fff;
+            margin-top: 1em;
+        }
+        h3 { font-size: 1.3rem; }
+
+        a { color: #59a8fd; }
+        a:hover { color: #b1d7ff; }
+
+        video { max-width: 100%; }
+        img { max-width: 100%; }
+
+        #fork-me {
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <a id="fork-me" href="https://github.com/pwmarcz/autotable">
+        <img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_right_darkblue_121621.png?resize=149%2C149"
+        class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1">
+    </a>
+    <div class="container-md main ">
+        <h1 class="mt-4">
+            Autotable
+        </h1>
+        <div class="pic mt-4">
+            <video controls autoplay loop src="img/about/game.mp4"></video>
+        </div>
+        <p class="text-center">
+            <a class="btn btn-warning text-dark" href="https://pwmarcz.pl/autotable/">Play now</a>
+        </p>
+        <p>
+            <b>Autotable</b> is an online platform for playing
+            <a href="https://en.wikipedia.org/wiki/Japanese_Mahjong">Riichi Mahjong</a>.
+        </p>
+        <p>
+            Unlike other mahjong programs, it's not really a game, but rather a tabletop simulator. The computer does not enforce the rules or make any moves for you. You are expected to do almost everything yourself: draw the tiles from the wall, sort them, call, make payments, and so on.
+        </p>
+        <p>This is all to make the experience feel more like real-life Mahjong. Think about it as an <a href="https://www.youtube.com/watch?v=N1fY2xH062w">automatic mahjong table</a>, but on the Internet.</p>
+        <p>
+            Autotable should be played with other people over a <b>voice call</b>, such as Jitsi, Google Meet or Discord.
+        </p>
+
+        <h2>FAQ</h2>
+
+        <h3>How to play online?</h3>
+
+        <p>There is no matchmaking, you need to arrange the game with other players yourself.</p>
+
+        <p>You should also connect with the other players over a video/audio call. Because the game is intentionally free-form and not automated, voice is really important: not only calls (pon/chi/kan/ron), but also payments, deciding who's next, clearing up mistakes, and so on.</p>
+
+        <p>To start an online game, click "Connect". Then, copy the page address (containing the game ID) and send it to other people.</p>
+
+        <h3>I got disconnected and now I can't return to my seat, what do I do?</h3>
+
+        <p>At the seat selection screen, click and hold the button with nickname next to you old seat. This will make the seat empty again.</p>
+
+        <div class="pic">
+            <img src="./img/about/unseat.png">
+        </div>
+
+        <h3>Who's the dealer?</h3>
+
+        <p>The first dealer is indicated by the round marker. You can move it around, or flip it to South side when needed.</p>
+
+        <div class="pic">
+            <img src="./img/about/round.png">
+        </div>
+
+        <p>The current dealer is shown on the center display, as an orange bar. The repeat count (honba) is also displayed there.</p>
+
+        <div class="pic">
+            <img src="./img/about/dealer.png">
+        </div>
+
+        <p>This information is updated automatically when somebody presses Deal, but you can also change it manually using the "Dealer" and "Honba" buttons.</p>
+
+        <h3>How do I pay?</h3>
+        <p>Use Space or Q to look down, to your tenbo sticks drawer.</p>
+        <p>You can put down the sticks on the table, next to the discards. Then the other person will be able to take them:</p>
+
+        <div class="pic">
+            <img src="./img/about/pay.png">
+        </div>
+
+        <h3>How do I decide seats?</h3>
+        <p>
+            You can deal random wind tiles to do that. Select "Wind tiles" from the dropdown, press "Deal", and grab tiles to determine your seats:
+        </p>
+
+        <div class="pic">
+            <img src="./img/about/winds.png">
+        </div>
+
+        <p>
+            The player that took East stays in their seat. You can move the round marker to that player's side. The other players can switch seats around the table using the "Leave seat" button.
+        </p>
+
+        <h3>What are the different modes?</h3>
+
+        <ul>
+            <li><b>Four-player</b> game
+            <li><b>Three-player</b> (sanma) - see <a href="http://arcturus.su/wiki/Sanma">Sanma</a> on Arcturus wiki, or <a href="https://en.wikipedia.org/wiki/Three_player_mahjong">Three-player mahjong</a> on Wikipedia. Main differences: no 2-8 Man, no chii, North is a special meld.
+            <li><b>Minefield</b> - a two-player game from <a href="https://en.wikipedia.org/wiki/Kaiji_(manga)">Kaiji</a> manga, see my earlier <a href="https://pwmarcz.pl/minefield/">Minefield game</a> (the page also contains a summary of rules).
+            <li><b>Bamboo</b> - an adaptation of the two-player <a href="https://www.gamedesign.jp/flash/bamboo/bamboo.html">Bamboo game</a> from gamedesign.jp. This is mostly a wait-reading exercise: only bamboo tiles, no melds except closed kan.
+        </ul>
+
+        <h2>Attribution</h2>
+
+        <p>To make the game, I used some freely available images and sounds:</p>
+
+        <ul>
+            <li>
+                The tile images were originally posted at <a href="https://web.archive.org/web/20160717012415/http://blog.kanojo.de/2011/07/01/more-shirt-stuff-t-shirt-logo-ideas/">Kanojo.de blog</a>. They're licensed under CC/BY/NC/SA.
+            </li>
+            <li>
+                The table texture is from <a href="https://cc0textures.com/view?id=Fabric030">CC0 Textures</a>. It's licensed under CC0.
+            </li>
+            <li>
+                The sounds come from <a href="https://opengameart.org/">OpenGameArt</a> (<a href="https://opengameart.org/content/thwack-sounds">Thwack Sounds</a>, <a href="https://opengameart.org/content/54-casino-sound-effects-cards-dice-chips">Casino sound effects</a>) and are licensed under CC0.
+            </li>
+            <li>
+                The cheatsheets are by the <a href="https://www.reddit.com/r/Mahjong/comments/l5b221/riichi_mahjong_cheat_sheet_1_page_pdf_or_images/">Reddit user Aranlyde</a> and are licensed under CC/BY/NC 4.0. The tile images in the cheatsheets are by <a href="https://github.com/FluffyStuff/riichi-mahjong-tiles">FluffyStuff on GitHub</a>, licensed CC/BY 4.0.
+            </li>
+        </ul>
+
+        <p>The project was made using the following excellent pieces of software:</p>
+        <ul>
+            <li><a href="https://threejs.org/">three.js</a></li>
+            <li><a href="https://parceljs.org/">Parcel</a></li>
+            <li><a href="https://inkscape.org/">Inkscape</a></li>
+            <li><a href="https://blender.org/">Blender</a></li>
+            <li><a href="https://getbootstrap.com/">Bootstrap</a></li>
+            <li><a href="https://www.typescriptlang.org/">TypeScript</a></li>
+            <li><a href="https://code.visualstudio.com/">Visual Studio Code</a></li>
+        </ul>
+
+        <h2>Contact me</h2>
+
+        <p>If you play with Autotable, and have any wishes, suggestions or opinions, email me! I will be really happy to hear it's being used. And I'm interested in what are the most most demanded features, or things that need fixing.</p>
+
+        <p>You can contact me at <a href="mailto:pwmarcz@gmail.com">pwmarcz@gmail.com</a>.</p>
+
+        <h2>Links</h2>
+
+        <ul>
+            <li><a href="https://pwmarcz.pl/autotable/">Play the game</a></li>
+            <li><a href="https://github.com/pwmarcz/autotable">Source code</a></li>
+            <li><a href="https://pwmarcz.pl/blog/autotable/">Blog post about making the game</a></li>
+            <li><a href="https://mahjong.guide/a-beginners-guide-to-riichi-mahjong/">A Beginner’s Guide to Riichi Mahjong</a></li>
+            <li><a href="https://pwmarcz.pl">My website</a>, including a <a href="https://pwmarcz.pl/mahjong">mahjong section</a></li>
+            <li><a href="https://pwmarcz.pl/minefield">Minefield Mahjong</a>, a game based on Kaiji comics</li>
+        </ul>
+
+    </div>
+</body>
