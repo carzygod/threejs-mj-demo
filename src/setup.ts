@@ -173,6 +173,8 @@ export class Setup {
       throw `bad deal: ${tiles.length} remaining`;
     }
 
+    this.addDefaultMeldShowcase(gameType, dealType);
+
     return dice;
   }
 
@@ -230,6 +232,41 @@ export class Setup {
 
         const thing = tiles.pop()!;
         thing.moveTo(slot, dealPart.rotationIndex);
+      }
+    }
+  }
+
+  private addDefaultMeldShowcase(gameType: GameType, dealType: DealType): void {
+    if (gameType !== GameType.FOUR_PLAYER || dealType !== DealType.HANDS) {
+      return;
+    }
+
+    const sourceTiles = [...this.things.values()].filter(thing =>
+      thing.type === ThingType.TILE &&
+      thing.slot.group === 'wall'
+    );
+    sourceTiles.sort((a, b) => b.slot.name.localeCompare(a.slot.name));
+
+    let sourceIndex = 0;
+    for (const seat of GAME_TYPES[gameType].seats) {
+      const targets = [...this.slots.values()].filter(slot =>
+        slot.group === 'meld' &&
+        slot.seat === seat &&
+        slot.thing === null
+      );
+      targets.sort((a, b) => {
+        const ai = a.indexes;
+        const bi = b.indexes;
+        return (ai[0] - bi[0]) || (ai[1] - bi[1]);
+      });
+
+      for (const target of targets.slice(0, 6)) {
+        const thing = sourceTiles[sourceIndex++];
+        if (thing === undefined) {
+          throw `not enough wall tiles for meld showcase`;
+        }
+        thing.prepareMove();
+        thing.moveTo(target, 0);
       }
     }
   }
