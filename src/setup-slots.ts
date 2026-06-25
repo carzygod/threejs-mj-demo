@@ -98,6 +98,11 @@ function seats(which?: Array<number>): SlotOp {
   };
 }
 
+function translateSlot(slot: Slot, offset: Vector3): void {
+  slot.origin.add(offset);
+  slot.places = slot.rotations.map(slot.makePlace.bind(slot));
+}
+
 const START: Record<string, Slot> = {
   'hand': new Slot({
     name: 'hand',
@@ -300,6 +305,13 @@ export const SLOT_GROUPS: Record<GameType, Array<SlotGroup>> = {
 
 function fixupSlots(slots: Array<Slot>, gameType: GameType): void {
   for (const slot of slots) {
+    if (
+      (gameType === GameType.FOUR_PLAYER || gameType === GameType.FOUR_PLAYER_DEMO) &&
+      slot.group === 'meld' &&
+      (slot.seat === 0 || slot.seat === 3)
+    ) {
+      translateSlot(slot, new Vector3(0, 14, 0));
+    }
     if (slot.name.startsWith('discard.extra')) {
       slot.linkDesc.requires = `discard.2.5@${slot.seat}`;
     }
