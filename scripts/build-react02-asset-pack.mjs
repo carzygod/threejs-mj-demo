@@ -63,6 +63,39 @@ const generateRoomBackground = async () => {
   console.log("generated img/react02/generated/room-bg-20x9.webp");
 };
 
+const generateRoomBackdropNoFloor = async () => {
+  const source = join(sourceRoot, "room-bg-20x9.png");
+  const output = join(generatedRoot, "room-backdrop-no-floor.webp");
+  const { width = 1870, height = 841 } = await sharp(source).metadata();
+  const fadeStart = Math.round(height * 0.3);
+
+  const overlay = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs>
+    <linearGradient id="floorFade" x1="0" y1="${fadeStart}" x2="0" y2="${height}" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#050b0f" stop-opacity="0"/>
+      <stop offset="18%" stop-color="#050b0f" stop-opacity=".76"/>
+      <stop offset="38%" stop-color="#050b0f" stop-opacity=".93"/>
+      <stop offset="100%" stop-color="#050b0f" stop-opacity=".99"/>
+    </linearGradient>
+    <radialGradient id="tableFocus" cx="50%" cy="59%" r="46%">
+      <stop offset="0%" stop-color="#050b0f" stop-opacity=".18"/>
+      <stop offset="64%" stop-color="#050b0f" stop-opacity=".1"/>
+      <stop offset="100%" stop-color="#050b0f" stop-opacity=".28"/>
+    </radialGradient>
+  </defs>
+  <rect y="${fadeStart}" width="${width}" height="${height - fadeStart}" fill="url(#floorFade)"/>
+  <rect width="${width}" height="${height}" fill="url(#tableFocus)"/>
+</svg>`;
+
+  await sharp(source)
+    .composite([{ input: Buffer.from(overlay), left: 0, top: 0 }])
+    .webp({ quality: 82, effort: 5 })
+    .toFile(output);
+
+  console.log("generated img/react02/generated/room-backdrop-no-floor.webp");
+};
+
 const copyTileAsset = filename => {
   const source = join(tileAssetRoot, filename);
   if (!existsSync(source)) {
@@ -301,6 +334,7 @@ const generateTileAtlas = async () => {
 };
 
 await generateRoomBackground();
+await generateRoomBackdropNoFloor();
 writeText("table-felt.svg", tableFeltSvg);
 await generateTileAtlas();
 await generateDiceStrip();
