@@ -7,6 +7,7 @@ import { AssetLoader } from "./asset-loader";
 import { Center } from "./center";
 import { ThingParams, ThingGroup, TileThingGroup, StickThingGroup, MarkerThingGroup } from "./thing-group";
 import { ThingType, Place, TileVariant, DiceInfo } from "./types";
+import { TABLE_VISUAL_SIZE } from "./table-layout";
 
 export interface Render {
   type: ThingType;
@@ -334,7 +335,7 @@ export class ObjectView {
     const railHighlightMaterial = new MeshLambertMaterial({ color: 0xc0782d });
     const goldMaterial = new MeshLambertMaterial({ color: 0xd8a84a });
     const darkGrooveMaterial = new MeshLambertMaterial({ color: 0x2f170a });
-    const tableSize = World.WIDTH + 8;
+    const tableSize = TABLE_VISUAL_SIZE;
     const center = World.WIDTH / 2;
     const outerMin = center - tableSize / 2;
     const outerMax = center + tableSize / 2;

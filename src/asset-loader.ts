@@ -11,8 +11,8 @@ import { Texture, Mesh, TextureLoader, Material,
    MeshStandardMaterial, MeshLambertMaterial, PlaneGeometry,
    RepeatWrapping, LinearSRGBColorSpace, DoubleSide } from 'three';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { World } from './world';
 import { Size } from './types';
+import { TABLE_VISUAL_SIZE } from './table-layout';
 
 
 export class AssetLoader {
@@ -20,8 +20,7 @@ export class AssetLoader {
   meshes: Record<string, Mesh> = {};
 
   makeTable(): Mesh {
-    const tableGeometry = new PlaneGeometry(
-      World.WIDTH + Size.TILE.y, World.WIDTH + Size.TILE.y);
+    const tableGeometry = new PlaneGeometry(TABLE_VISUAL_SIZE, TABLE_VISUAL_SIZE);
     const tableMaterial = new MeshLambertMaterial({ map: this.textures.table });
     const tableMesh = new Mesh(tableGeometry, tableMaterial);
     return tableMesh;
