@@ -96,6 +96,99 @@ const generateRoomBackdropNoFloor = async () => {
   console.log("generated img/react02/generated/room-backdrop-no-floor.webp");
 };
 
+const generateRoomPerspectiveReference = async () => {
+  const source = join(sourceRoot, "room-bg-20x9.png");
+  const output = join(generatedRoot, "room-perspective-reference.png");
+  const { width = 1870, height = 841 } = await sharp(source).metadata();
+  const horizonY = Math.round(height * 0.31);
+  const tableTopY = Math.round(height * 0.15);
+  const tableBottomY = Math.round(height * 1.04);
+  const topLeftX = Math.round(width * 0.25);
+  const topRightX = Math.round(width * 0.75);
+  const bottomLeftX = Math.round(width * -0.02);
+  const bottomRightX = Math.round(width * 1.02);
+
+  const guide = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="${width}" height="${height}" fill="rgba(3, 10, 13, .42)"/>
+  <line x1="0" y1="${horizonY}" x2="${width}" y2="${horizonY}" stroke="#7fffd7" stroke-width="5" stroke-opacity=".9" filter="url(#glow)"/>
+  <line x1="0" y1="${horizonY + 18}" x2="${width}" y2="${horizonY + 18}" stroke="#7fffd7" stroke-width="2" stroke-opacity=".45"/>
+  <line x1="${topLeftX}" y1="${tableTopY}" x2="${topRightX}" y2="${tableTopY}" stroke="#ffd66f" stroke-width="7" stroke-opacity=".95" filter="url(#glow)"/>
+  <line x1="${topLeftX}" y1="${tableTopY}" x2="${bottomLeftX}" y2="${tableBottomY}" stroke="#ffd66f" stroke-width="4" stroke-opacity=".64"/>
+  <line x1="${topRightX}" y1="${tableTopY}" x2="${bottomRightX}" y2="${tableBottomY}" stroke="#ffd66f" stroke-width="4" stroke-opacity=".64"/>
+  <line x1="${topLeftX}" y1="${tableTopY}" x2="${topRightX}" y2="${tableTopY}" stroke="#ffffff" stroke-width="1" stroke-opacity=".9"/>
+  <text x="${Math.round(width * 0.035)}" y="${horizonY - 16}" fill="#a8ffea" font-family="Arial, sans-serif" font-size="${Math.round(width * 0.018)}" font-weight="700">BACKGROUND HORIZON: KEEP HORIZONTAL AND PARALLEL TO TABLE TOP</text>
+  <text x="${topLeftX}" y="${tableTopY - 18}" fill="#ffe39a" font-family="Arial, sans-serif" font-size="${Math.round(width * 0.018)}" font-weight="700">TABLE TOP BASELINE</text>
+</svg>`;
+
+  await sharp(source)
+    .composite([{ input: Buffer.from(guide), left: 0, top: 0 }])
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toFile(output);
+
+  console.log("generated img/react02/generated/room-perspective-reference.png");
+};
+
+const generateRoomBackdropPerspectiveLocked = async () => {
+  const source = join(sourceRoot, "room-bg-20x9.png");
+  const output = join(generatedRoot, "room-backdrop-perspective-locked.webp");
+  const { width = 1870, height = 841 } = await sharp(source).metadata();
+  const horizonY = Math.round(height * 0.31);
+  const wipeY = Math.round(height * 0.38);
+
+  const overlay = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <defs>
+    <linearGradient id="lowerWipe" x1="0" y1="${horizonY}" x2="0" y2="${height}" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#050b0f" stop-opacity="0"/>
+      <stop offset="16%" stop-color="#050b0f" stop-opacity=".5"/>
+      <stop offset="32%" stop-color="#050b0f" stop-opacity=".86"/>
+      <stop offset="100%" stop-color="#050b0f" stop-opacity=".99"/>
+    </linearGradient>
+    <linearGradient id="horizonGlow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#09221e" stop-opacity="0"/>
+      <stop offset="20%" stop-color="#0b3d35" stop-opacity=".28"/>
+      <stop offset="50%" stop-color="#154940" stop-opacity=".36"/>
+      <stop offset="80%" stop-color="#0b3d35" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="#09221e" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="roomFocus" cx="50%" cy="34%" r="58%">
+      <stop offset="0%" stop-color="#d9f0dc" stop-opacity=".08"/>
+      <stop offset="42%" stop-color="#0b312d" stop-opacity=".04"/>
+      <stop offset="100%" stop-color="#020608" stop-opacity=".28"/>
+    </radialGradient>
+    <radialGradient id="tableShadow" cx="50%" cy="70%" r="54%">
+      <stop offset="0%" stop-color="#03090b" stop-opacity=".08"/>
+      <stop offset="62%" stop-color="#03090b" stop-opacity=".24"/>
+      <stop offset="100%" stop-color="#03090b" stop-opacity=".66"/>
+    </radialGradient>
+  </defs>
+  <rect y="${horizonY}" width="${width}" height="${height - horizonY}" fill="url(#lowerWipe)"/>
+  <rect y="${horizonY - 16}" width="${width}" height="42" fill="url(#horizonGlow)"/>
+  <rect y="${wipeY}" width="${width}" height="${height - wipeY}" fill="#050b0f" opacity=".2"/>
+  <rect width="${width}" height="${height}" fill="url(#roomFocus)"/>
+  <rect width="${width}" height="${height}" fill="url(#tableShadow)"/>
+  <line x1="0" y1="${horizonY}" x2="${width}" y2="${horizonY}" stroke="#63b69e" stroke-opacity=".025" stroke-width="2"/>
+</svg>`;
+
+  await sharp(source)
+    .modulate({ brightness: 1.04, saturation: 0.94 })
+    .composite([{ input: Buffer.from(overlay), left: 0, top: 0 }])
+    .webp({ quality: 86, effort: 5 })
+    .toFile(output);
+
+  console.log("generated img/react02/generated/room-backdrop-perspective-locked.webp");
+};
+
 const copyTileAsset = filename => {
   const source = join(tileAssetRoot, filename);
   if (!existsSync(source)) {
@@ -335,6 +428,8 @@ const generateTileAtlas = async () => {
 
 await generateRoomBackground();
 await generateRoomBackdropNoFloor();
+await generateRoomPerspectiveReference();
+await generateRoomBackdropPerspectiveLocked();
 writeText("table-felt.svg", tableFeltSvg);
 await generateTileAtlas();
 await generateDiceStrip();
