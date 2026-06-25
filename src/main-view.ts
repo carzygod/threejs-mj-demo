@@ -67,21 +67,21 @@ export class MainView {
   }
 
   private setupLights(): void {
-    this.viewGroup.add(new AmbientLight(0xb0c8a8, 1.18));
+    this.viewGroup.add(new AmbientLight(0xe5f0ea, 1.36));
 
-    const topLight = new DirectionalLight(0xffd489, 1.62);
+    const topLight = new DirectionalLight(0xfffbf0, 1.32);
     topLight.position.set(-2500, -3500, 10000);
     this.viewGroup.add(topLight);
 
-    const frontLight = new DirectionalLight(0xffb15f, 0.55);
+    const frontLight = new DirectionalLight(0xf3fbff, 0.52);
     frontLight.position.set(0, -10000, 2500);
     this.viewGroup.add(frontLight);
 
-    const sideLight = new DirectionalLight(0x8fc1dc, 0.62);
+    const sideLight = new DirectionalLight(0xaed8f2, 0.44);
     sideLight.position.set(-10000, -7000, 2600);
     this.viewGroup.add(sideLight);
 
-    const rimLight = new DirectionalLight(0xf4cc6a, 0.36);
+    const rimLight = new DirectionalLight(0xffe0a6, 0.16);
     rimLight.position.set(9000, 6500, 2400);
     this.viewGroup.add(rimLight);
   }

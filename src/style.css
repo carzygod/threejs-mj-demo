@@ -4,9 +4,7 @@ body {
     height: 100%;
     margin: 0;
     overflow: hidden;
-    background:
-        radial-gradient(circle at 50% 58%, rgba(10, 77, 61, 0.12), rgba(4, 16, 14, 0.6) 68%),
-        url('../img/react02/generated/room-bg-20x9.webp') center / cover no-repeat;
+    background: url('../img/react02/generated/room-bg-20x9.webp') center / cover no-repeat;
     overscroll-behavior: none;
     touch-action: none;
     user-select: none;
@@ -21,8 +19,7 @@ body {
     left: 0;
     right: 0;
     background:
-        radial-gradient(circle at 50% 58%, rgba(20, 105, 83, 0.08), rgba(2, 11, 10, 0.5) 70%),
-        url('../img/react02/generated/room-bg-20x9.webp') center / cover no-repeat;
+        radial-gradient(circle at 50% 56%, rgba(255, 255, 255, 0.04), rgba(5, 12, 15, 0.18) 74%);
     overflow: hidden;
     touch-action: none;
 }
