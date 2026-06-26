@@ -142,8 +142,8 @@ const START: Record<string, Slot> = {
   'meld': new Slot({
     name: `meld`,
     group: `meld`,
-    origin: new Vector3(174, 0, 0),
-    direction: new Vector2(-1, 1),
+    origin: new Vector3(0, 0, 0),
+    direction: new Vector2(1, 1),
     rotations: [Rotation.FACE_UP, Rotation.FACE_UP_SIDEWAYS, Rotation.FACE_DOWN],
   }),
 
@@ -238,7 +238,7 @@ export const SLOT_GROUPS: Record<GameType, Array<SlotGroup>> = {
   FOUR_PLAYER: [
     [start('hand'), row(14, undefined, {shift: true}), seats()],
     [start('hand.extra'), seats()],
-    [start('meld'), column(4), row(4, -Size.TILE.x, {push: true, shift: true}), seats()],
+    [start('meld'), column(4), row(4, Size.TILE.x, {push: true, shift: true}), seats()],
     [start('wall'), row(19), stack(), seats()],
     [start('discard'), column(3, -Size.TILE.y), row(6, undefined, {push: true}), seats()],
     [start('discard.extra'), row(4, undefined, {push: true}), seats()],
@@ -252,7 +252,7 @@ export const SLOT_GROUPS: Record<GameType, Array<SlotGroup>> = {
   FOUR_PLAYER_DEMO: [
     [start('hand'), row(14, undefined, {shift: true}), seats()],
     [start('hand.extra'), seats()],
-    [start('meld'), column(4), row(4, -Size.TILE.x, {push: true, shift: true}), seats()],
+    [start('meld'), column(4), row(4, Size.TILE.x, {push: true, shift: true}), seats()],
     [start('wall.demo'), row(19), stack(), seats()],
     [start('discard'), column(3, -Size.TILE.y), row(6, undefined, {push: true}), seats()],
     [start('discard.extra'), row(4, undefined, {push: true}), seats()],
@@ -265,7 +265,7 @@ export const SLOT_GROUPS: Record<GameType, Array<SlotGroup>> = {
 
   THREE_PLAYER: [
     [start('hand.3p'), row(14, undefined, {shift: true}), seats([0, 1, 2])],
-    [start('meld'), column(4), row(4, -Size.TILE.x, {push: true, shift: true}), seats([0, 1, 2])],
+    [start('meld'), column(4), row(4, Size.TILE.x, {push: true, shift: true}), seats([0, 1, 2])],
     [start('kita'), row(4, -Size.TILE.x, {shift: true}), seats([0, 1, 2])],
     [start('wall'), row(19), stack(), seats()],
     [start('discard'), column(3, -Size.TILE.y), row(6, undefined, {push: true}), seats([0, 1, 2])],
@@ -280,7 +280,7 @@ export const SLOT_GROUPS: Record<GameType, Array<SlotGroup>> = {
   BAMBOO: [
     [start('hand'), row(14, undefined, {shift: true}), seats([0, 2])],
     [start('hand.extra'), seats([0, 2])],
-    [start('meld'), column(4), row(4, -Size.TILE.x, {push: true, shift: true}), seats([0, 2])],
+    [start('meld'), column(4), row(4, Size.TILE.x, {push: true, shift: true}), seats([0, 2])],
     [start('wall'), row(19), stack(), seats([0, 2])],
     [start('discard'), column(3, -Size.TILE.y), row(6, undefined, {push: true}), seats([0, 2])],
 
@@ -308,7 +308,7 @@ function fixupSlots(slots: Array<Slot>, gameType: GameType): void {
     if (
       (gameType === GameType.FOUR_PLAYER || gameType === GameType.FOUR_PLAYER_DEMO) &&
       slot.group === 'meld' &&
-      (slot.seat === 0 || slot.seat === 3)
+      (slot.seat === 0 || slot.seat === 1)
     ) {
       translateSlot(slot, new Vector3(0, 14, 0));
     }
