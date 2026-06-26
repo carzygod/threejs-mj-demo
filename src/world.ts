@@ -381,6 +381,10 @@ export class World {
   }
 
   private canSelect(thing: Thing, otherSelected: Array<Thing>): boolean {
+    if (!this.canControlThing(thing)) {
+      return false;
+    }
+
     const upSlot = thing.slot.links.up;
     if (upSlot && upSlot.thing !== null) {
       if (otherSelected.indexOf(upSlot.thing) !== -1) {
@@ -394,6 +398,14 @@ export class World {
       return false;
     }
     return true;
+  }
+
+  private canControlThing(thing: Thing): boolean {
+    return this.seat !== null &&
+      thing.type === ThingType.TILE &&
+      thing.slot.group === 'hand' &&
+      thing.slot.seat === this.seat &&
+      (thing.claimedBy === null || thing.claimedBy === this.seat);
   }
 
   private findSlot(x: number, y: number, w: number, h: number, thingType: ThingType): Slot | null {
@@ -456,7 +468,13 @@ export class World {
         this.selected.splice(0);
       }
 
-      toHold = toHold.filter(thing => thing.claimedBy === null);
+      toHold = toHold.filter(thing =>
+        thing.claimedBy === null &&
+        this.canControlThing(thing)
+      );
+      if (toHold.length === 0) {
+        return false;
+      }
 
       for (const thing of toHold) {
         thing.hold(this.seat);
@@ -548,9 +566,14 @@ export class World {
       const rotationIndex = mostCommon(this.selected, thing => thing.rotationIndex)!;
       const toFlip = [];
       for (const thing of this.selected) {
-        if (this.selected.length === 1 || thing.slot.canFlipMultiple) {
+        if (this.canControlThing(thing) &&
+            (this.selected.length === 1 || thing.slot.canFlipMultiple)) {
           toFlip.push(thing);
         }
+      }
+      if (toFlip.length === 0) {
+        this.selected.splice(0);
+        return;
       }
       if (toFlip.length > 1 && animated) {
         toFlip.sort((a, b) => a.slot.name.localeCompare(b.slot.name, undefined, { numeric: true }));
@@ -562,7 +585,7 @@ export class World {
         this.checkPushes();
         this.selected.splice(0);
       }
-    } else if (this.hovered !== null) {
+    } else if (this.hovered !== null && this.canControlThing(this.hovered)) {
       this.hovered.flip(this.hovered.rotationIndex + direction);
       this.sendUpdate();
       this.checkPushes();
@@ -771,7 +794,7 @@ export class World {
     if (this.seat !== null && !this.isHolding()) {
       const cameraHand = this.getCameraHandLayout();
       for (const thing of this.things.values()) {
-        if (thing.claimedBy === null) {
+        if (thing.claimedBy === null && this.canControlThing(thing)) {
           const cameraHandIndex = cameraHand.order.get(thing.index);
           const cameraHandPlace = cameraHandIndex === undefined
             ? null
