@@ -21,6 +21,7 @@ const SHIFT_TIME = 100;
 const CAMERA_HAND_DISTANCE = 86;
 const CAMERA_HAND_Y_NDC = -0.76;
 const CAMERA_HAND_SPACING = Size.TILE.x * 1.08;
+const FORWARD_DRAG_DISCARD_DISTANCE = Size.TILE.y * 1.25;
 
 export class World {
   private setup: Setup;
@@ -495,6 +496,10 @@ export class World {
 
   onDragEnd(): void {
     if (this.isHolding()) {
+      if (this.tryForwardDragDiscard()) {
+        return;
+      }
+
       if (this.heldMouse !== null && this.mouse !== null &&
           this.heldMouse.equals(this.mouse)) {
 
@@ -512,6 +517,58 @@ export class World {
       }
     }
 
+  }
+
+  private tryForwardDragDiscard(): boolean {
+    if (this.seat === null || this.heldDropMouse === null || this.dropMouse === null) {
+      return false;
+    }
+
+    const held = [...this.things.values()].filter(thing =>
+      thing.claimedBy === this.seat &&
+      thing.shiftSlot === null &&
+      this.canControlThing(thing)
+    );
+    if (held.length !== 1) {
+      return false;
+    }
+
+    const thing = held[0];
+    if (!this.isForwardDiscardGesture(thing)) {
+      return false;
+    }
+
+    const target = this.findDiscardSlot(this.seat);
+    if (target === null) {
+      return false;
+    }
+
+    const source = thing.slot;
+    thing.prepareMove();
+    thing.moveTo(target, 0);
+    this.checkPushes();
+    this.soundPlayer.play(SoundType.DISCARD, this.seat);
+    this.showDiscardMarker(target);
+    this.finishDrop([source]);
+    return true;
+  }
+
+  private isForwardDiscardGesture(thing: Thing): boolean {
+    if (this.heldDropMouse === null || this.dropMouse === null) {
+      return false;
+    }
+
+    const origin = thing.slot.placeWithOffset(thing.rotationIndex).position.clone();
+    origin.z = 0;
+    const forward = new Vector3(World.WIDTH / 2, World.WIDTH / 2, 0).sub(origin);
+    if (forward.lengthSq() === 0) {
+      return false;
+    }
+    forward.normalize();
+
+    const delta = this.dropMouse.clone().sub(this.heldDropMouse);
+    delta.z = 0;
+    return delta.dot(forward) >= FORWARD_DRAG_DISCARD_DISTANCE;
   }
 
   onDoubleClickDiscard(): boolean {
